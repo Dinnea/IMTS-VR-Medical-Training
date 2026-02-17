@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "VR_Hand.h"
 #include "GameFramework/Actor.h"
 #include "VR_Hand_Controller.generated.h"
 
@@ -9,7 +10,7 @@ class UWidgetInteractionComponent;
 class USphereComponent;
 
 UCLASS()
-class VR_MEDICAL_TRAINING_API AVR_Hand_Controller : public AActor
+class VR_MEDICAL_TRAINING_API AVR_Hand_Controller : public AVR_Hand
 {
 	GENERATED_BODY()
 	

@@ -1,7 +1,7 @@
 #include "VR_CharacterPawn.h"
 
 #include "IXRTrackingSystem.h"
-#include "VR_Hand_Controller.h"
+#include "VR_Hands/VR_Hand_Controller.h"
 #include "Camera/CameraComponent.h"
 
 AVR_CharacterPawn::AVR_CharacterPawn()

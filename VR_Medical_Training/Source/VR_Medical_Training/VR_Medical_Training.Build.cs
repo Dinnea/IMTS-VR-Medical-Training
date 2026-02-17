@@ -8,7 +8,7 @@ public class VR_Medical_Training : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "UMG" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "UMG", "XRBase", "OpenXRHandTracking" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

@@ -1,9 +1,9 @@
-#include "VR_Hand.h"
+#include "VR_Hand_Controller.h"
 #include "MotionControllerComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetInteractionComponent.h"
 
-AVR_Hand::AVR_Hand()
+AVR_Hand_Controller::AVR_Hand_Controller()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	
@@ -21,7 +21,7 @@ AVR_Hand::AVR_Hand()
 	GrabShpere->SetupAttachment(HandMesh);
 }
 
-void AVR_Hand::OnConstruction(const FTransform& Transform)
+void AVR_Hand_Controller::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 
@@ -40,7 +40,7 @@ void AVR_Hand::OnConstruction(const FTransform& Transform)
 	} 
 }
 
-void AVR_Hand::BeginPlay()
+void AVR_Hand_Controller::BeginPlay()
 {
 	Super::BeginPlay();
 	
@@ -50,7 +50,7 @@ void AVR_Hand::BeginPlay()
 			FString::Printf(TEXT("Class %s: wrong hand type."), *GetClass()->GetName()));
 	
 }
-void AVR_Hand::Tick(float DeltaTime)
+void AVR_Hand_Controller::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }

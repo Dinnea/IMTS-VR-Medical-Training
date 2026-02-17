@@ -2,19 +2,19 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "VR_Hand.generated.h"
+#include "VR_Hand_Controller.generated.h"
 
 class UMotionControllerComponent;
 class UWidgetInteractionComponent;
 class USphereComponent;
 
 UCLASS()
-class VR_MEDICAL_TRAINING_API AVR_Hand : public AActor
+class VR_MEDICAL_TRAINING_API AVR_Hand_Controller : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
-	AVR_Hand();
+	AVR_Hand_Controller();
 	virtual void Tick(float DeltaTime) override;
 
 protected:

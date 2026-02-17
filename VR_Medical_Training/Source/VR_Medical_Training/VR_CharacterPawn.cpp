@@ -1,10 +1,10 @@
-#include "VR_CharacterController.h"
+#include "VR_CharacterPawn.h"
 
 #include "IXRTrackingSystem.h"
-#include "VR_Hand.h"
+#include "VR_Hand_Controller.h"
 #include "Camera/CameraComponent.h"
 
-AVR_CharacterController::AVR_CharacterController()
+AVR_CharacterPawn::AVR_CharacterPawn()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	
@@ -15,7 +15,7 @@ AVR_CharacterController::AVR_CharacterController()
 	Camera->SetupAttachment(Origin);
 }
 
-void AVR_CharacterController::BeginPlay()
+void AVR_CharacterPawn::BeginPlay()
 {
 	Super::BeginPlay();
 	
@@ -23,7 +23,7 @@ void AVR_CharacterController::BeginPlay()
 	SetupVRHands();
 }
 
-void AVR_CharacterController::SetupVRTrackingOrigin()
+void AVR_CharacterPawn::SetupVRTrackingOrigin()
 {
 	if (!GEngine)
 	{
@@ -47,7 +47,7 @@ void AVR_CharacterController::SetupVRTrackingOrigin()
 		*XRSystem->GetSystemName().ToString());
 }
 
-TObjectPtr<AVR_Hand> AVR_CharacterController::SpawnHand(UWorld* World, const TSubclassOf<AVR_Hand> HandClass) const
+TObjectPtr<AVR_Hand_Controller> AVR_CharacterPawn::SpawnHand(UWorld* World, const TSubclassOf<AVR_Hand_Controller> HandClass) const
 {
 	if (!HandClass)
 	{
@@ -56,7 +56,7 @@ TObjectPtr<AVR_Hand> AVR_CharacterController::SpawnHand(UWorld* World, const TSu
 			   *HandClass->GetName());
 		return nullptr;
 	}
-	TObjectPtr<AVR_Hand> NewHand = World->SpawnActor<AVR_Hand>(HandClass);
+	TObjectPtr<AVR_Hand_Controller> NewHand = World->SpawnActor<AVR_Hand_Controller>(HandClass);
 	UE_LOG(LogTemp, Log,
 				TEXT("[VR] Spawned + attached Hand: '%s' (Class: %s)"),
 				*NewHand->GetName(),
@@ -65,7 +65,7 @@ TObjectPtr<AVR_Hand> AVR_CharacterController::SpawnHand(UWorld* World, const TSu
 	return NewHand;
 }
 
-void AVR_CharacterController::SetupVRHands()
+void AVR_CharacterPawn::SetupVRHands()
 {	
 	UWorld* World = GetWorld();
 	if (!World)
@@ -80,12 +80,12 @@ void AVR_CharacterController::SetupVRHands()
 	
 }
 
-void AVR_CharacterController::Tick(float DeltaTime)
+void AVR_CharacterPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
 
-void AVR_CharacterController::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void AVR_CharacterPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }

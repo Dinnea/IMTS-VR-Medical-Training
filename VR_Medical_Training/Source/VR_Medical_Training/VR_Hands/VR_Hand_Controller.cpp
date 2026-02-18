@@ -1,6 +1,5 @@
 #include "VR_Hand_Controller.h"
 #include "MotionControllerComponent.h"
-#include "Components/SphereComponent.h"
 #include "Components/WidgetInteractionComponent.h"
 
 AVR_Hand_Controller::AVR_Hand_Controller()
@@ -16,9 +15,6 @@ AVR_Hand_Controller::AVR_Hand_Controller()
 	
 	WidgetInteractionComponent = CreateDefaultSubobject<UWidgetInteractionComponent>("WidgetInteractionComponent");
 	WidgetInteractionComponent->SetupAttachment(HandMesh);
-	
-	GrabShpere = CreateDefaultSubobject<USphereComponent>("GrabShpere");
-	GrabShpere->SetupAttachment(HandMesh);
 }
 
 void AVR_Hand_Controller::OnConstruction(const FTransform& Transform)

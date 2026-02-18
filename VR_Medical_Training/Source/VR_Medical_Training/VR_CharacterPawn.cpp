@@ -1,7 +1,7 @@
 #include "VR_CharacterPawn.h"
 
 #include "IXRTrackingSystem.h"
-#include "VR_Hands/VR_Hand_Controller.h"
+#include "VR_Hands/VR_Hand.h"
 #include "Camera/CameraComponent.h"
 
 AVR_CharacterPawn::AVR_CharacterPawn()
@@ -47,7 +47,7 @@ void AVR_CharacterPawn::SetupVRTrackingOrigin()
 		*XRSystem->GetSystemName().ToString());
 }
 
-TObjectPtr<AVR_Hand_Controller> AVR_CharacterPawn::SpawnHand(UWorld* World, const TSubclassOf<AVR_Hand_Controller> HandClass) const
+TObjectPtr<AVR_Hand> AVR_CharacterPawn::SpawnHand(UWorld* World, const TSubclassOf<AVR_Hand> HandClass) const
 {
 	if (!HandClass)
 	{
@@ -56,7 +56,7 @@ TObjectPtr<AVR_Hand_Controller> AVR_CharacterPawn::SpawnHand(UWorld* World, cons
 			   *HandClass->GetName());
 		return nullptr;
 	}
-	TObjectPtr<AVR_Hand_Controller> NewHand = World->SpawnActor<AVR_Hand_Controller>(HandClass);
+	TObjectPtr<AVR_Hand> NewHand = World->SpawnActor<AVR_Hand>(HandClass);
 	UE_LOG(LogTemp, Log,
 				TEXT("[VR] Spawned + attached Hand: '%s' (Class: %s)"),
 				*NewHand->GetName(),

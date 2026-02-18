@@ -4,7 +4,7 @@
 #include "GameFramework/Character.h"
 #include "VR_CharacterPawn.generated.h"
 
-class AVR_Hand_Controller;
+class AVR_Hand;
 class UCameraComponent;
 
 UCLASS()
@@ -29,20 +29,20 @@ protected:
 	TObjectPtr<USceneComponent> Origin;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR|Hands")
-	TSubclassOf<AVR_Hand_Controller> LeftHandClass;
+	TSubclassOf<AVR_Hand> LeftHandClass;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR|Hands")
-	TSubclassOf<AVR_Hand_Controller> RightHandClass;
+	TSubclassOf<AVR_Hand> RightHandClass;
 
 private:
 	void SetupVRTrackingOrigin();
 	void SetupInputContext();
 	void SetupVRHands();
 	
-	TObjectPtr<AVR_Hand_Controller> SpawnHand(UWorld* World, TSubclassOf<AVR_Hand_Controller> HandClass) const;
+	TObjectPtr<AVR_Hand> SpawnHand(UWorld* World, TSubclassOf<AVR_Hand> HandClass) const;
 	
 	UPROPERTY(Transient)
-	TObjectPtr<AVR_Hand_Controller> LeftHand = nullptr;
+	TObjectPtr<AVR_Hand> LeftHand = nullptr;
 
 	UPROPERTY(Transient)
-	TObjectPtr<AVR_Hand_Controller> RightHand = nullptr;
+	TObjectPtr<AVR_Hand> RightHand = nullptr;
 };

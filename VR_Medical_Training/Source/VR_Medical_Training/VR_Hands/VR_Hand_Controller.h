@@ -6,8 +6,6 @@
 #include "VR_Hand_Controller.generated.h"
 
 class UMotionControllerComponent;
-class UWidgetInteractionComponent;
-class USphereComponent;
 
 UCLASS()
 class VR_MEDICAL_TRAINING_API AVR_Hand_Controller : public AVR_Hand
@@ -24,18 +22,10 @@ protected:
 	
 // Components
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UMotionControllerComponent> MotionController;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|Hands")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands")
+	TObjectPtr<UMotionControllerComponent> MotionController;	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands|Visual")
 	TObjectPtr<USkeletalMeshComponent> HandMesh;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|Hands")
-	TObjectPtr<UWidgetInteractionComponent> WidgetInteractionComponent;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components|Hands")
-	TObjectPtr<USphereComponent> GrabShpere;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components|Hands|HandData")
-	EControllerHand HandType;
-	
-	UPROPERTY(BlueprintReadOnly, Category = "Components|Hands|HandData")
+	UPROPERTY(BlueprintReadOnly, Category = "VR_Hands|HandData")
 	bool bIsAnimationMirrored;
 };

@@ -22,16 +22,16 @@ protected:
 	void DrawHand();
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Visual")
-	TObjectPtr<UStaticMesh> JointMesh;
+	TObjectPtr<UInstancedStaticMeshComponent> JointMeshInstance;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Data|Joints")
-	FVector JointScale = FVector(0.01f, 0.01f, 0.01f);
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands|Data|Joints")
+	float JointScale = 0.05f;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VR_Hands|Data|Joints")
 	TArray<FTransform> JointTransforms = TArray<FTransform>();
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VR_Hands|Data|Joints")
-	TArray<UStaticMeshComponent*> JointMeshes;
+	TArray<int32> JointInstanceIndex;
 	
 private:
 	FXRHandTrackingState TrackedHandData;

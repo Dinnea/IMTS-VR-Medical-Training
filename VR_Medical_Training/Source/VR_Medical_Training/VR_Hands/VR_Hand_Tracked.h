@@ -14,13 +14,17 @@ class VR_MEDICAL_TRAINING_API AVR_Hand_Tracked : public AVR_Hand
 	
 public:	
 	AVR_Hand_Tracked();
-	void InitializeJoints();
+	void InitializeJointData();
 	virtual void Tick(float DeltaTime) override;
 
 protected:
 	virtual void BeginPlay() override;
 	void RecordJointTransforms(const FXRHandTrackingState& Data);
+	
+	UFUNCTION(BlueprintCallable, Category = "VR_Hands|Draw")
 	void DrawJoints();
+	UFUNCTION(BlueprintCallable, Category = "VR_Hands|Draw")
+	void DrawJointsDebug();
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Visual")
 	TObjectPtr<UInstancedStaticMeshComponent> JointMeshInstance;

@@ -15,7 +15,7 @@ void AVR_Hand_Tracked::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	InitializeJoints();
+	InitializeJointData();
 }
 
 void AVR_Hand_Tracked::Tick(float DeltaTime)
@@ -33,17 +33,14 @@ void AVR_Hand_Tracked::Tick(float DeltaTime)
 	}
 	
 	RecordJointTransforms(TrackedHandData);
-	DrawJoints();
 }
 
-void AVR_Hand_Tracked::InitializeJoints()
+void AVR_Hand_Tracked::InitializeJointData()
 {
 	for (int i = 0; i < JointCount; i++)
 	{
 		JointTransforms.Add(
 			FTransform(FQuat::Identity, FVector::Zero(), FVector(JointScale)));
-		
-		JointInstanceIndex.Add(JointMeshInstance->AddInstance(JointTransforms[i], true));
 	}
 }
 
@@ -69,8 +66,29 @@ void AVR_Hand_Tracked::RecordJointTransforms(const FXRHandTrackingState& Data)
 	}
 }
 
+void AVR_Hand_Tracked::DrawJointsDebug()
+{
+	const UWorld* World = GetWorld();
+	
+	for (int i = 0; i < JointCount; i++)
+	{
+		DrawDebugCoordinateSystem(World, JointTransforms[i].GetLocation(), JointTransforms[i].Rotator(), 1);
+	}
+}
+
 void AVR_Hand_Tracked::DrawJoints()
 {
+	if (JointInstanceIndex.IsEmpty())
+	{
+		for (FTransform Transform : JointTransforms)
+		{
+			JointInstanceIndex.Add(JointMeshInstance->AddInstance(Transform, true));
+		}
+		
+		return;
+	}
 	for (int i = 0; i < JointCount; i++)
+	{
 		JointMeshInstance->UpdateInstanceTransform(JointInstanceIndex[i], JointTransforms[i], true);
+	}
 }

@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "VR_Hand.generated.h"
+
 class UWidgetInteractionComponent;
 class USphereComponent;
 

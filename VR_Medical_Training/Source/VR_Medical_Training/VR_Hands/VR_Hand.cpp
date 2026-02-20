@@ -1,7 +1,5 @@
 #include "VR_Hand.h"
 
-#include "HeadMountedDisplayFunctionLibrary.h"
-
 AVR_Hand::AVR_Hand()
 {
 	PrimaryActorTick.bCanEverTick = true;

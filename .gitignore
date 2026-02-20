@@ -64,3 +64,4 @@ VR_Medical_Training/SourceArt/**/*.tga
 !VR_Medical_Training/Build/*/
 !VR_Medical_Training/Build/*/PakBlacklist*.txt
 !VR_Medical_Training/Build/**/*.ico
+VR_Medical_Training/.idea

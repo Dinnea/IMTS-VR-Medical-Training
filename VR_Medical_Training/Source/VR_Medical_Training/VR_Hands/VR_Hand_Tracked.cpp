@@ -1,6 +1,7 @@
 #include "VR_Hand_Tracked.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Components/InstancedStaticMeshComponent.h"
+#include "Components/PoseableMeshComponent.h"
 
 AVR_Hand_Tracked::AVR_Hand_Tracked()
 {
@@ -16,6 +17,46 @@ void AVR_Hand_Tracked::BeginPlay()
 	Super::BeginPlay();
 	
 	InitializeJointData();
+}
+
+void AVR_Hand_Tracked::PostLoad()
+{
+	Super::PostLoad();
+	JointBoneMaps.Empty();
+	if (!HandMesh)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("HandMesh component is null"));
+		return;;
+	}
+	
+	USkeletalMesh* mesh = HandMesh->GetSkeletalMeshAsset();
+	if (!mesh)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No skeletal mesh assigned yet"));
+		return;
+	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("Mesh detected: %s"),
+		*HandMesh->GetSkeletalMeshAsset()->GetName());
+	
+	const FReferenceSkeleton& refSkeleton = mesh->GetRefSkeleton();	
+	TArray<FName> BoneNames = refSkeleton.GetRawRefBoneNames();
+	
+	UE_LOG(LogTemp, Warning, TEXT("Bone count is: %d"), BoneNames.Num());
+	
+	for (const FName Bone : BoneNames)
+	{
+		// const bool bBoneExists = JointBoneMaps.ContainsByPredicate(
+		// 	[&](const FJointBoneMap& Entry)
+		// 	{
+		// 		return Entry.BoneName == Bone;
+		// 	});
+		//
+		// if (!bBoneExists)
+			JointBoneMaps.Add(FJointBoneMap(Bone));
+		UE_LOG(LogTemp, Warning, TEXT("Bones added: %d"), JointBoneMaps.Num());
+	}
+	
 }
 
 void AVR_Hand_Tracked::Tick(float DeltaTime)
@@ -72,7 +113,20 @@ void AVR_Hand_Tracked::DrawJointsDebug()
 	
 	for (int i = 0; i < JointCount; i++)
 	{
-		DrawDebugCoordinateSystem(World, JointTransforms[i].GetLocation(), JointTransforms[i].Rotator(), 1);
+		DrawDebugCoordinateSystem(World, 
+			JointTransforms[i].GetLocation(), 
+			JointTransforms[i].Rotator(), 
+			1);
+		
+		FString JointName = StaticEnum<EHandKeypoint>()->GetNameByValue(i).ToString();
+		
+		DrawDebugString(World, 
+			JointTransforms[i].GetLocation(), 
+			JointName, 
+			nullptr, 
+			FColor::Green, 
+			0.f, 
+			true);
 	}
 }
 

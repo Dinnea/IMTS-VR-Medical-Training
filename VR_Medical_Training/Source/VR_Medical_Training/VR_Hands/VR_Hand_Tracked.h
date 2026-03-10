@@ -6,6 +6,26 @@
 #include "GameFramework/Actor.h"
 #include "VR_Hand_Tracked.generated.h"
 
+USTRUCT(BlueprintType)
+struct FJointBoneMap
+{
+	GENERATED_BODY()
+
+	FJointBoneMap()
+	{
+		
+	}
+	explicit FJointBoneMap(FName InBoneName)
+	{
+		BoneName = InBoneName;
+	}
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	EHandKeypoint Joint = EHandKeypoint::Palm;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FName BoneName = "Null";
+};
 
 UCLASS()
 class VR_MEDICAL_TRAINING_API AVR_Hand_Tracked : public AVR_Hand
@@ -19,6 +39,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void PostLoad() override;
 	void RecordJointTransforms(const FXRHandTrackingState& Data);
 	
 	UFUNCTION(BlueprintCallable, Category = "VR_Hands|Draw")
@@ -37,6 +58,10 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VR_Hands|Data|Joints")
 	TArray<int32> JointInstanceIndex = TArray<int32>();
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Data|Joints")
+	TArray<FJointBoneMap> JointBoneMaps = TArray<FJointBoneMap>();
+	
 	
 private:
 	FXRHandTrackingState TrackedHandData;

@@ -3,6 +3,8 @@
 AVR_Hand::AVR_Hand()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	HandMesh = CreateDefaultSubobject<USkeletalMeshComponent>("HandMesh");
+	HandMesh->SetupAttachment(RootComponent);
 }
 
 void AVR_Hand::BeginPlay()

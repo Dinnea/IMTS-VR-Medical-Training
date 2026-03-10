@@ -21,6 +21,8 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands")
 	TObjectPtr<UWidgetInteractionComponent> WidgetInteractionComponent;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands|Visual")
+	TObjectPtr<USkeletalMeshComponent> HandMesh;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands")
 	TObjectPtr<USphereComponent> GrabSphere;
 	

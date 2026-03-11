@@ -8,8 +8,12 @@ AVR_Hand_Tracked::AVR_Hand_Tracked()
 	PrimaryActorTick.bCanEverTick = true;
 	
 	RootComponent = CreateDefaultSubobject<USceneComponent>("VR Hand Origin");
+	
 	JointMeshInstance = CreateDefaultSubobject<UInstancedStaticMeshComponent>("JointMeshInstance");
 	JointMeshInstance->SetupAttachment(RootComponent);
+	
+	HandMesh = CreateDefaultSubobject<UPoseableMeshComponent>("HandMesh");
+	HandMesh->SetupAttachment(RootComponent);
 }
 
 void AVR_Hand_Tracked::BeginPlay()
@@ -22,6 +26,13 @@ void AVR_Hand_Tracked::BeginPlay()
 void AVR_Hand_Tracked::PostLoad()
 {
 	Super::PostLoad();
+	USkinnedAsset* CurrentMesh = HandMesh->GetSkinnedAsset();
+	
+	if (CurrentMesh == CachedMesh)
+		return;
+	
+	CachedMesh = CurrentMesh;
+	
 	JointBoneMaps.Empty();
 	if (!HandMesh)
 	{
@@ -29,17 +40,13 @@ void AVR_Hand_Tracked::PostLoad()
 		return;;
 	}
 	
-	USkeletalMesh* mesh = HandMesh->GetSkeletalMeshAsset();
-	if (!mesh)
+	if (!CurrentMesh)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("No skeletal mesh assigned yet"));
+		UE_LOG(LogTemp, Warning, TEXT("No mesh assigned yet"));
 		return;
 	}
 	
-	UE_LOG(LogTemp, Warning, TEXT("Mesh detected: %s"),
-		*HandMesh->GetSkeletalMeshAsset()->GetName());
-	
-	const FReferenceSkeleton& refSkeleton = mesh->GetRefSkeleton();	
+	const FReferenceSkeleton& refSkeleton = CurrentMesh->GetRefSkeleton();	
 	TArray<FName> BoneNames = refSkeleton.GetRawRefBoneNames();
 	
 	UE_LOG(LogTemp, Warning, TEXT("Bone count is: %d"), BoneNames.Num());
@@ -56,7 +63,6 @@ void AVR_Hand_Tracked::PostLoad()
 			JointBoneMaps.Add(FJointBoneMap(Bone));
 		UE_LOG(LogTemp, Warning, TEXT("Bones added: %d"), JointBoneMaps.Num());
 	}
-	
 }
 
 void AVR_Hand_Tracked::Tick(float DeltaTime)
@@ -117,7 +123,15 @@ void AVR_Hand_Tracked::DrawJointsDebug()
 			JointTransforms[i].GetLocation(), 
 			JointTransforms[i].Rotator(), 
 			1);
-		
+	}
+}
+
+void AVR_Hand_Tracked::DrawJointNamesDebug()
+{
+	const UWorld* World = GetWorld();
+	
+	for (int i = 0; i < JointCount; i++)
+	{
 		FString JointName = StaticEnum<EHandKeypoint>()->GetNameByValue(i).ToString();
 		
 		DrawDebugString(World, 
@@ -127,6 +141,18 @@ void AVR_Hand_Tracked::DrawJointsDebug()
 			FColor::Green, 
 			0.f, 
 			true);
+	}
+}
+
+void AVR_Hand_Tracked::AnimateHands()
+{
+	for (const FJointBoneMap JBMap : JointBoneMaps)
+	{
+		const int Index = static_cast<int>(JBMap.Joint);
+		if (Index > 25)
+			continue;
+		
+		HandMesh->SetBoneTransformByName(JBMap.BoneName, JointTransforms[Index], EBoneSpaces::WorldSpace);
 	}
 }
 

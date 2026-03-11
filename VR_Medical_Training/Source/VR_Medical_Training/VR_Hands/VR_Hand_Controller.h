@@ -24,6 +24,8 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands")
 	TObjectPtr<UMotionControllerComponent> MotionController;	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands|Visual")
+	TObjectPtr<USkeletalMeshComponent> HandMesh;
 	UPROPERTY(BlueprintReadOnly, Category = "VR_Hands|HandData")
 	bool bIsAnimationMirrored;
 };

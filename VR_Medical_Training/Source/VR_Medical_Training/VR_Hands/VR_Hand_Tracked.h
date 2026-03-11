@@ -3,8 +3,41 @@
 #include "CoreMinimal.h"
 #include "HeadMountedDisplayTypes.h"
 #include "VR_Hand.h"
+#include "Components/PoseableMeshComponent.h"
 #include "GameFramework/Actor.h"
 #include "VR_Hand_Tracked.generated.h"
+
+UENUM(BlueprintType)
+enum class EJoint : uint8
+{
+	Palm,
+	Wrist,
+	ThumbMetacarpal,
+	ThumbProximal,
+	ThumbDistal,
+	ThumbTip,
+	IndexMetacarpal,
+	IndexProximal,
+	IndexIntermediate,
+	IndexDistal,
+	IndexTip,
+	MiddleMetacarpal,
+	MiddleProximal,
+	MiddleIntermediate,
+	MiddleDistal,
+	MiddleTip,
+	RingMetacarpal,
+	RingProximal,
+	RingIntermediate,
+	RingDistal,
+	RingTip,
+	LittleMetacarpal,
+	LittleProximal,
+	LittleIntermediate,
+	LittleDistal,
+	LittleTip,
+	None = 99
+};
 
 USTRUCT(BlueprintType)
 struct FJointBoneMap
@@ -21,7 +54,7 @@ struct FJointBoneMap
 	}
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	EHandKeypoint Joint = EHandKeypoint::Palm;
+	EJoint Joint = EJoint::None;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FName BoneName = "Null";
@@ -42,10 +75,17 @@ protected:
 	virtual void PostLoad() override;
 	void RecordJointTransforms(const FXRHandTrackingState& Data);
 	
-	UFUNCTION(BlueprintCallable, Category = "VR_Hands|Draw")
+	UFUNCTION(BlueprintCallable, Category = "VR_Hands|Debug")
 	void DrawJoints();
-	UFUNCTION(BlueprintCallable, Category = "VR_Hands|Draw")
+	UFUNCTION(BlueprintCallable, Category = "VR_Hands|Debug")
 	void DrawJointsDebug();
+	UFUNCTION(BlueprintCallable, Category = "VR_Hands|Debug")
+	void DrawJointNamesDebug();
+	UFUNCTION(BlueprintCallable, Category = "VR_Hands|Animate")
+	void AnimateHands();
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands|Visual")
+	TObjectPtr<UPoseableMeshComponent> HandMesh;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Visual")
 	TObjectPtr<UInstancedStaticMeshComponent> JointMeshInstance;
@@ -66,4 +106,7 @@ protected:
 private:
 	FXRHandTrackingState TrackedHandData;
 	int JointCount = 26;
+
+	UPROPERTY()
+	USkinnedAsset* CachedMesh = nullptr;
 };

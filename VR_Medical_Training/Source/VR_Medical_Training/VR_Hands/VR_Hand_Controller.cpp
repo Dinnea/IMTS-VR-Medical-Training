@@ -10,6 +10,9 @@ AVR_Hand_Controller::AVR_Hand_Controller()
 	MotionController = CreateDefaultSubobject<UMotionControllerComponent>("MotionController");
 	SetRootComponent(MotionController);
 	
+	HandMesh = CreateDefaultSubobject<USkeletalMeshComponent>("HandMesh");
+	HandMesh->SetupAttachment(RootComponent);
+	
 	WidgetInteractionComponent = CreateDefaultSubobject<UWidgetInteractionComponent>("WidgetInteractionComponent");
 	WidgetInteractionComponent->SetupAttachment(HandMesh);
 }

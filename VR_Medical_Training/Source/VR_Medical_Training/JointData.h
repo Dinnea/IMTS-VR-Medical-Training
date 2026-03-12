@@ -40,18 +40,16 @@ struct FJointBoneMap
 {
 	GENERATED_BODY()
 
-	FJointBoneMap()
+	FJointBoneMap()   {	}
+	
+	explicit  FJointBoneMap(const EJoint InJoint)
 	{
-		
+		Joint = InJoint;
 	}
-	explicit FJointBoneMap(FName InBoneName)
-	{
-		BoneName = InBoneName;
-	}
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	EJoint Joint = EJoint::None;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	EJoint Joint = EJoint::None;
+
+	UPROPERTY(EditAnywhere, meta=(GetOptions="GetBonePool"))
 	FName BoneName = "Null";
 };

@@ -17,11 +17,16 @@ public:
 	AVR_Hand_Tracked();
 	void InitializeJointData();
 	virtual void Tick(float DeltaTime) override;
+	
+	UFUNCTION()
+	TArray<FName> GetBonePool() {return BonePool;}
 
 protected:
 	virtual void BeginPlay() override;
 	virtual void PostLoad() override;
-	void RecordJointTransforms(const FXRHandTrackingState& Data);
+	
+	void RegenerateJointBoneMaps();
+	void RecordJointTransforms();
 	
 	UFUNCTION(BlueprintCallable, Category = "VR_Hands|Debug")
 	void DrawJointMeshDebug();
@@ -60,6 +65,9 @@ protected:
 	bool bShowJointLabels;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Visual|Settings")
+	FVector LabelOffset;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Visual|Settings")
 	bool bAnimateHand;
 	
 	
@@ -69,4 +77,7 @@ private:
 
 	UPROPERTY()
 	USkinnedAsset* CachedMesh = nullptr;
+	
+	UPROPERTY()
+	TArray<FName> BonePool;
 };

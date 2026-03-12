@@ -23,22 +23,18 @@ void AVR_Hand_Tracked::BeginPlay()
 	InitializeJointData();
 }
 
+
 void AVR_Hand_Tracked::PostLoad()
 {
 	Super::PostLoad();
+	
+	// Check current mesh
 	USkinnedAsset* CurrentMesh = HandMesh->GetSkinnedAsset();
 	
-	if (CurrentMesh == CachedMesh)
+	UE_LOG(LogTemp, Warning, TEXT("is empty? %s"), JointBoneMaps.IsEmpty()? TEXT("TRUE") : TEXT("FALSE"));
+	
+	if (CurrentMesh == CachedMesh && !JointBoneMaps.IsEmpty())
 		return;
-	
-	CachedMesh = CurrentMesh;
-	
-	JointBoneMaps.Empty();
-	if (!HandMesh)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("HandMesh component is null"));
-		return;;
-	}
 	
 	if (!CurrentMesh)
 	{
@@ -46,40 +42,18 @@ void AVR_Hand_Tracked::PostLoad()
 		return;
 	}
 	
-	const FReferenceSkeleton& refSkeleton = CurrentMesh->GetRefSkeleton();	
-	TArray<FName> BoneNames = refSkeleton.GetRawRefBoneNames();
+	CachedMesh = CurrentMesh;
 	
-	UE_LOG(LogTemp, Warning, TEXT("Bone count is: %d"), BoneNames.Num());
-	
-	for (const FName Bone : BoneNames)
-	{
-		// const bool bBoneExists = JointBoneMaps.ContainsByPredicate(
-		// 	[&](const FJointBoneMap& Entry)
-		// 	{
-		// 		return Entry.BoneName == Bone;
-		// 	});
-		//
-		// if (!bBoneExists)
-			JointBoneMaps.Add(FJointBoneMap(Bone));
-		UE_LOG(LogTemp, Warning, TEXT("Bones added: %d"), JointBoneMaps.Num());
-	}
+	RegenerateJointBoneMaps();
 }
 
 void AVR_Hand_Tracked::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	UHeadMountedDisplayFunctionLibrary::GetHandTrackingState(this, EXRSpaceType::UnrealWorldSpace, 
-		HandType, TrackedHandData);
 	
-	if (!TrackedHandData.bValid)
-	{
-		UE_LOG(LogTemp, Warning,
-				TEXT("Hand tracking data received is invalid / empty, hands will not be drawn."));
-		return;
-	}
 	
-	RecordJointTransforms(TrackedHandData);
+	RecordJointTransforms();
 	
 	if (bShowJointMeshDebug)
 		DrawJointMeshDebug();
@@ -94,6 +68,19 @@ void AVR_Hand_Tracked::Tick(float DeltaTime)
 		AnimateHand();
 }
 
+void AVR_Hand_Tracked::RegenerateJointBoneMaps()
+{
+	JointBoneMaps.Empty();	
+	
+	const FReferenceSkeleton& RefSkeleton = CachedMesh->GetRefSkeleton();	
+	BonePool = RefSkeleton.GetRawRefBoneNames();
+	
+	UE_LOG(LogTemp, Warning, TEXT("Bone count is: %d"), BonePool.Num());
+	
+	for (int i = 0; i<JointCount; i++)
+		JointBoneMaps.Add(FJointBoneMap(static_cast<EJoint>(i)));
+}
+
 void AVR_Hand_Tracked::InitializeJointData()
 {
 	for (int i = 0; i < JointCount; i++)
@@ -103,10 +90,20 @@ void AVR_Hand_Tracked::InitializeJointData()
 	}
 }
 
-void AVR_Hand_Tracked::RecordJointTransforms(const FXRHandTrackingState& Data)
+void AVR_Hand_Tracked::RecordJointTransforms()
 {	
-	const TArray<FVector>& JointsLocations = Data.HandKeyLocations;
-	const TArray<FQuat>& JointsRotations = Data.HandKeyRotations;
+	UHeadMountedDisplayFunctionLibrary::GetHandTrackingState(this, EXRSpaceType::UnrealWorldSpace, 
+		HandType, TrackedHandData);
+	
+	if (!TrackedHandData.bValid)
+	{
+		UE_LOG(LogTemp, Warning,
+				TEXT("Hand tracking data received is invalid / empty, hands will not be drawn."));
+		return;
+	}
+	
+	const TArray<FVector>& JointsLocations = TrackedHandData.HandKeyLocations;
+	const TArray<FQuat>& JointsRotations = TrackedHandData.HandKeyRotations;
 	
 	if (JointsLocations.Num() != JointCount || JointsRotations.Num() != JointCount)
 	{
@@ -132,7 +129,7 @@ void AVR_Hand_Tracked::DrawJointCoordsDebug()
 	for (int i = 0; i < JointCount; i++)
 	{
 		DrawDebugCoordinateSystem(World, 
-			JointTransforms[i].GetLocation(), 
+			JointTransforms[i].GetLocation()+ LabelOffset,
 			JointTransforms[i].Rotator(), 
 			1);
 	}
@@ -158,13 +155,21 @@ void AVR_Hand_Tracked::DrawJointNamesDebug()
 
 void AVR_Hand_Tracked::AnimateHand()
 {
+	const FQuat RotationOffset = FQuat(0.5f, 0.5f, 0.5f, 0.5f);
+		
+	FTransform TransformOffset = FTransform();
+	TransformOffset.SetRotation(RotationOffset);
+	
 	for (const FJointBoneMap JBMap : JointBoneMaps)
 	{
 		const int Index = static_cast<int>(JBMap.Joint);
 		if (Index > 25)
 			continue;
 		
-		HandMesh->SetBoneTransformByName(JBMap.BoneName, JointTransforms[Index], EBoneSpaces::WorldSpace);
+		
+		FTransform ToUse = JointTransforms[Index]*TransformOffset;
+		
+		HandMesh->SetBoneTransformByName(JBMap.BoneName, ToUse, EBoneSpaces::WorldSpace);
 	}
 }
 

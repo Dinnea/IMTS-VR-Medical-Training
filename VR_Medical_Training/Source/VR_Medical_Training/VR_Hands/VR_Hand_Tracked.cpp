@@ -80,6 +80,18 @@ void AVR_Hand_Tracked::Tick(float DeltaTime)
 	}
 	
 	RecordJointTransforms(TrackedHandData);
+	
+	if (bShowJointMeshDebug)
+		DrawJointMeshDebug();
+	
+	if (bShowJointCoordsDebug)
+		DrawJointCoordsDebug();
+	
+	if (bShowJointLabels)
+		DrawJointNamesDebug();
+	
+	if (bAnimateHand)
+		AnimateHand();
 }
 
 void AVR_Hand_Tracked::InitializeJointData()
@@ -113,7 +125,7 @@ void AVR_Hand_Tracked::RecordJointTransforms(const FXRHandTrackingState& Data)
 	}
 }
 
-void AVR_Hand_Tracked::DrawJointsDebug()
+void AVR_Hand_Tracked::DrawJointCoordsDebug()
 {
 	const UWorld* World = GetWorld();
 	
@@ -144,7 +156,7 @@ void AVR_Hand_Tracked::DrawJointNamesDebug()
 	}
 }
 
-void AVR_Hand_Tracked::AnimateHands()
+void AVR_Hand_Tracked::AnimateHand()
 {
 	for (const FJointBoneMap JBMap : JointBoneMaps)
 	{
@@ -156,7 +168,7 @@ void AVR_Hand_Tracked::AnimateHands()
 	}
 }
 
-void AVR_Hand_Tracked::DrawJoints()
+void AVR_Hand_Tracked::DrawJointMeshDebug()
 {
 	if (JointInstanceIndex.IsEmpty())
 	{

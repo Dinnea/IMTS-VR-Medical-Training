@@ -5,60 +5,8 @@
 #include "VR_Hand.h"
 #include "Components/PoseableMeshComponent.h"
 #include "GameFramework/Actor.h"
+#include "VR_Medical_Training/JointData.h"
 #include "VR_Hand_Tracked.generated.h"
-
-UENUM(BlueprintType)
-enum class EJoint : uint8
-{
-	Palm,
-	Wrist,
-	ThumbMetacarpal,
-	ThumbProximal,
-	ThumbDistal,
-	ThumbTip,
-	IndexMetacarpal,
-	IndexProximal,
-	IndexIntermediate,
-	IndexDistal,
-	IndexTip,
-	MiddleMetacarpal,
-	MiddleProximal,
-	MiddleIntermediate,
-	MiddleDistal,
-	MiddleTip,
-	RingMetacarpal,
-	RingProximal,
-	RingIntermediate,
-	RingDistal,
-	RingTip,
-	LittleMetacarpal,
-	LittleProximal,
-	LittleIntermediate,
-	LittleDistal,
-	LittleTip,
-	None = 99
-};
-
-USTRUCT(BlueprintType)
-struct FJointBoneMap
-{
-	GENERATED_BODY()
-
-	FJointBoneMap()
-	{
-		
-	}
-	explicit FJointBoneMap(FName InBoneName)
-	{
-		BoneName = InBoneName;
-	}
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	EJoint Joint = EJoint::None;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FName BoneName = "Null";
-};
 
 UCLASS()
 class VR_MEDICAL_TRAINING_API AVR_Hand_Tracked : public AVR_Hand
@@ -76,13 +24,13 @@ protected:
 	void RecordJointTransforms(const FXRHandTrackingState& Data);
 	
 	UFUNCTION(BlueprintCallable, Category = "VR_Hands|Debug")
-	void DrawJoints();
+	void DrawJointMeshDebug();
 	UFUNCTION(BlueprintCallable, Category = "VR_Hands|Debug")
-	void DrawJointsDebug();
+	void DrawJointCoordsDebug();
 	UFUNCTION(BlueprintCallable, Category = "VR_Hands|Debug")
 	void DrawJointNamesDebug();
 	UFUNCTION(BlueprintCallable, Category = "VR_Hands|Animate")
-	void AnimateHands();
+	void AnimateHand();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands|Visual")
 	TObjectPtr<UPoseableMeshComponent> HandMesh;
@@ -101,6 +49,18 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Data|Joints")
 	TArray<FJointBoneMap> JointBoneMaps = TArray<FJointBoneMap>();
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Visual|Settings")
+	bool bShowJointMeshDebug;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Visual|Settings")
+	bool bShowJointCoordsDebug;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Visual|Settings")
+	bool bShowJointLabels;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Visual|Settings")
+	bool bAnimateHand;
 	
 	
 private:

@@ -24,27 +24,16 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void PostLoad() override;
-	
-	void RegenerateJointBoneMaps();
-	void RecordJointTransforms();
-	
-	UFUNCTION(BlueprintCallable, Category = "VR_Hands|Debug")
-	void DrawJointMeshDebug();
-	UFUNCTION(BlueprintCallable, Category = "VR_Hands|Debug")
-	void DrawJointCoordsDebug();
-	UFUNCTION(BlueprintCallable, Category = "VR_Hands|Debug")
-	void DrawJointNamesDebug();
-	UFUNCTION(BlueprintCallable, Category = "VR_Hands|Animate")
-	void AnimateHand();
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands|Visual")
 	TObjectPtr<UPoseableMeshComponent> HandMesh;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Visual")
-	TObjectPtr<UInstancedStaticMeshComponent> JointMeshInstance;
+	TArray<FJointBoneMap> JointBoneMaps = TArray<FJointBoneMap>();
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands|Data|Joints")
-	float JointScale = 0.05f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Visual")
+	TObjectPtr<UInstancedStaticMeshComponent> JointMeshInstance;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VR_Hands|Data|Joints")
 	TArray<FTransform> JointTransforms = TArray<FTransform>();
@@ -52,14 +41,17 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VR_Hands|Data|Joints")
 	TArray<int32> JointInstanceIndex = TArray<int32>();
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Data|Joints")
-	TArray<FJointBoneMap> JointBoneMaps = TArray<FJointBoneMap>();
-	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Visual|Settings")
 	bool bShowJointMeshDebug;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands|Visual|Settings")
+	float DebugJointScale = 0.05f;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Visual|Settings")
 	bool bShowJointCoordsDebug;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands|Visual|Settings")
+	float DebugCoordScale = 5.f;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Visual|Settings")
 	bool bShowJointLabels;
@@ -72,6 +64,16 @@ protected:
 	
 	
 private:
+	void RegenerateJointBoneMaps();
+	void RecordJointTransforms();
+	void ChangeBoneSuffix(const FString& From, const FString& To);
+	void CorrectBoneNames();
+	
+	void DrawJointMeshDebug();
+	void DrawJointCoordsDebug();
+	void DrawJointNamesDebug();
+	void AnimateHand();
+	
 	FXRHandTrackingState TrackedHandData;
 	int JointCount = 26;
 

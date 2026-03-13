@@ -6,14 +6,12 @@
 AVR_Hand_Tracked::AVR_Hand_Tracked()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	
-	RootComponent = CreateDefaultSubobject<USceneComponent>("VR Hand Origin");
+		
+	HandMesh = CreateDefaultSubobject<UPoseableMeshComponent>("HandMesh");
+	RootComponent = HandMesh;
 	
 	JointMeshInstance = CreateDefaultSubobject<UInstancedStaticMeshComponent>("JointMeshInstance");
 	JointMeshInstance->SetupAttachment(RootComponent);
-	
-	HandMesh = CreateDefaultSubobject<UPoseableMeshComponent>("HandMesh");
-	HandMesh->SetupAttachment(RootComponent);
 }
 
 void AVR_Hand_Tracked::BeginPlay()
@@ -30,7 +28,6 @@ void AVR_Hand_Tracked::PostLoad()
 	
 	// Check current mesh
 	USkinnedAsset* CurrentMesh = HandMesh->GetSkinnedAsset();
-	
 	UE_LOG(LogTemp, Warning, TEXT("is empty? %s"), JointBoneMaps.IsEmpty()? TEXT("TRUE") : TEXT("FALSE"));
 	
 	if (CurrentMesh == CachedMesh && !JointBoneMaps.IsEmpty())
@@ -47,11 +44,21 @@ void AVR_Hand_Tracked::PostLoad()
 	RegenerateJointBoneMaps();
 }
 
+void AVR_Hand_Tracked::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+	
+	
+	if (const FName ChangedProperty = PropertyChangedEvent.GetMemberPropertyName(); 
+		ChangedProperty == GET_MEMBER_NAME_CHECKED(AVR_Hand_Tracked, JointBoneMaps))
+	{
+		CorrectBoneNames();
+	}
+}
+
 void AVR_Hand_Tracked::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	
 	
 	RecordJointTransforms();
 	
@@ -74,6 +81,7 @@ void AVR_Hand_Tracked::RegenerateJointBoneMaps()
 	
 	const FReferenceSkeleton& RefSkeleton = CachedMesh->GetRefSkeleton();	
 	BonePool = RefSkeleton.GetRawRefBoneNames();
+	BonePool.Add(NAME_None);
 	
 	UE_LOG(LogTemp, Warning, TEXT("Bone count is: %d"), BonePool.Num());
 	
@@ -86,7 +94,7 @@ void AVR_Hand_Tracked::InitializeJointData()
 	for (int i = 0; i < JointCount; i++)
 	{
 		JointTransforms.Add(
-			FTransform(FQuat::Identity, FVector::Zero(), FVector(JointScale)));
+			FTransform(FQuat::Identity, FVector::Zero()));
 	}
 }
 
@@ -122,6 +130,32 @@ void AVR_Hand_Tracked::RecordJointTransforms()
 	}
 }
 
+void AVR_Hand_Tracked::ChangeBoneSuffix(const FString& From, const FString& To)
+{
+	if (HandType != EControllerHand::Left && HandType != EControllerHand::Right)
+		return;
+	
+	for (auto& JointBoneMap : JointBoneMaps)
+	{
+		if (FString NewName = JointBoneMap.BoneName.ToString(); NewName.RemoveFromEnd(From))
+		{		
+			NewName += To;
+			JointBoneMap.BoneName = FName(NewName);
+		}
+	}
+}
+
+void AVR_Hand_Tracked::CorrectBoneNames()
+{
+	const FString LeftSuffix = "l";
+	const FString RightSuffix = "r";
+	
+	const FString& From = (HandType == EControllerHand::Left) ? RightSuffix : LeftSuffix;
+	const FString& To   = (HandType == EControllerHand::Left) ? LeftSuffix  : RightSuffix;
+
+	ChangeBoneSuffix(From, To);
+}
+
 void AVR_Hand_Tracked::DrawJointCoordsDebug()
 {
 	const UWorld* World = GetWorld();
@@ -131,7 +165,7 @@ void AVR_Hand_Tracked::DrawJointCoordsDebug()
 		DrawDebugCoordinateSystem(World, 
 			JointTransforms[i].GetLocation()+ LabelOffset,
 			JointTransforms[i].Rotator(), 
-			1);
+			DebugCoordScale);
 	}
 }
 
@@ -155,7 +189,7 @@ void AVR_Hand_Tracked::DrawJointNamesDebug()
 
 void AVR_Hand_Tracked::AnimateHand()
 {
-	const FQuat RotationOffset = FQuat(0.5f, 0.5f, 0.5f, 0.5f);
+	const FQuat RotationOffset = FRotator(0.f, 90.f, 90.f).Quaternion();;
 		
 	FTransform TransformOffset = FTransform();
 	TransformOffset.SetRotation(RotationOffset);
@@ -166,10 +200,12 @@ void AVR_Hand_Tracked::AnimateHand()
 		if (Index > 25)
 			continue;
 		
-		
-		FTransform ToUse = JointTransforms[Index]*TransformOffset;
+		FTransform ToUse = TransformOffset * JointTransforms[Index];
 		
 		HandMesh->SetBoneTransformByName(JBMap.BoneName, ToUse, EBoneSpaces::WorldSpace);
+		// HandMesh->FillComponentSpaceTransforms();
+		// HandMesh->FinalizeBoneTransform();
+		// HandMesh->MarkRenderDynamicDataDirty();
 	}
 }
 
@@ -179,6 +215,8 @@ void AVR_Hand_Tracked::DrawJointMeshDebug()
 	{
 		for (FTransform Transform : JointTransforms)
 		{
+			FTransform ToUse = Transform;
+			ToUse.SetScale3D(FVector(DebugJointScale)); 
 			JointInstanceIndex.Add(JointMeshInstance->AddInstance(Transform, true));
 		}
 		

@@ -51,5 +51,5 @@ struct FJointBoneMap
 	EJoint Joint = EJoint::None;
 
 	UPROPERTY(EditAnywhere, meta=(GetOptions="GetBonePool"))
-	FName BoneName = "Null";
+	FName BoneName = NAME_None;
 };

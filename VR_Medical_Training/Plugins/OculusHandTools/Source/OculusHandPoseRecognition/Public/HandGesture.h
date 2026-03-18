@@ -9,7 +9,6 @@ LICENSE file in the root directory of this source tree.
 #pragma once
 
 #include "CoreMinimal.h"
-#include "OculusXRInputFunctionLibrary.h"
 #include "HandPose.h"
 #include "HandGesture.generated.h"
 

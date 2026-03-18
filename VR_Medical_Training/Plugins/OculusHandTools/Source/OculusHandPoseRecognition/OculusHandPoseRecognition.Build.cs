@@ -32,7 +32,7 @@ public class OculusHandPoseRecognition : ModuleRules
             new string[]
             {
                 "Core",
-                // ... add other public dependencies that you statically link with here ...
+                "OculusXRInput",
             }
             );
 
@@ -44,7 +44,6 @@ public class OculusHandPoseRecognition : ModuleRules
                 "Engine",
                 "Slate",
                 "SlateCore",
-                "OculusXRInput",
                 // ... add private dependencies that you statically link with here ...
             }
             );

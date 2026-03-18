@@ -1,4 +1,7 @@
 #include "VR_Hand_Tracked.h"
+
+#include "HandGestureRecognizer.h"
+#include "HandPoseRecognizer.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Components/PoseableMeshComponent.h"
@@ -12,6 +15,12 @@ AVR_Hand_Tracked::AVR_Hand_Tracked()
 	
 	JointMeshInstance = CreateDefaultSubobject<UInstancedStaticMeshComponent>("JointMeshInstance");
 	JointMeshInstance->SetupAttachment(RootComponent);
+	
+	PoseRecognizer = CreateDefaultSubobject<UHandPoseRecognizer>("PoseRecognizer");
+	PoseRecognizer->SetupAttachment(RootComponent);
+	
+	GestureRecognizer = CreateDefaultSubobject<UHandGestureRecognizer>("GestureRecognizer");
+	GestureRecognizer->SetupAttachment(RootComponent);
 }
 
 void AVR_Hand_Tracked::BeginPlay()
@@ -73,6 +82,8 @@ void AVR_Hand_Tracked::Tick(float DeltaTime)
 	
 	if (bAnimateHand)
 		AnimateHand();
+	
+	//PoseRecognizer->GetRecognizedHandPose()
 }
 
 void AVR_Hand_Tracked::RegenerateJointBoneMaps()
@@ -207,6 +218,13 @@ void AVR_Hand_Tracked::AnimateHand()
 		// HandMesh->FinalizeBoneTransform();
 		// HandMesh->MarkRenderDynamicDataDirty();
 	}
+}
+
+void AVR_Hand_Tracked::HandlePoseTransition(FPoseTransition& PoseTransition)
+{
+	//if is grab, then Grab()
+	
+	//if grab is over, then Drop()
 }
 
 void AVR_Hand_Tracked::DrawJointMeshDebug()

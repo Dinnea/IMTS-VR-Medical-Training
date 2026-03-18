@@ -40,11 +40,12 @@ struct FJointBoneMap
 {
 	GENERATED_BODY()
 
-	FJointBoneMap()   {	}
-	
-	explicit  FJointBoneMap(const EJoint InJoint)
+	FJointBoneMap()
 	{
-		Joint = InJoint;
+	}
+	
+	explicit  FJointBoneMap(const EJoint InJoint) : Joint(InJoint)
+	{
 	}
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)

@@ -3,10 +3,13 @@
 #include "CoreMinimal.h"
 #include "HeadMountedDisplayTypes.h"
 #include "VR_Hand.h"
-#include "Components/PoseableMeshComponent.h"
-#include "GameFramework/Actor.h"
 #include "VR_Medical_Training/JointData.h"
 #include "VR_Hand_Tracked.generated.h"
+
+struct FPoseTransition;
+class UPoseableMeshComponent;
+class UHandPoseRecognizer;
+class UHandGestureRecognizer;
 
 UCLASS()
 class VR_MEDICAL_TRAINING_API AVR_Hand_Tracked : public AVR_Hand
@@ -20,11 +23,19 @@ public:
 	
 	UFUNCTION()
 	TArray<FName> GetBonePool() {return BonePool;}
+	
+	DECLARE_MULTICAST_DELEGATE_OneParam(OnPoseTransition, const FPoseTransition&);
 
 protected:
 	virtual void BeginPlay() override;
 	virtual void PostLoad() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands|Tracking")
+	TObjectPtr<UHandPoseRecognizer> PoseRecognizer;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands|Tracking")
+	TObjectPtr<UHandGestureRecognizer> GestureRecognizer;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands|Visual")
 	TObjectPtr<UPoseableMeshComponent> HandMesh;
@@ -74,12 +85,14 @@ private:
 	void DrawJointNamesDebug();
 	void AnimateHand();
 	
-	FXRHandTrackingState TrackedHandData;
-	int JointCount = 26;
-
+	void HandlePoseTransition(FPoseTransition& PoseTransition);
+	
 	UPROPERTY()
 	USkinnedAsset* CachedMesh = nullptr;
 	
 	UPROPERTY()
 	TArray<FName> BonePool;
+	
+	FXRHandTrackingState TrackedHandData;
+	int JointCount = 26;
 };

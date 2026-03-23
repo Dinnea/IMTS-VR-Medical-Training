@@ -6,6 +6,7 @@
 #include "SphereComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Components/PoseableMeshComponent.h"
+#include "VR_Medical_Training/GrababbleItem.h"
 
 AVR_Hand_Tracked::AVR_Hand_Tracked()
 {
@@ -113,6 +114,20 @@ void AVR_Hand_Tracked::Tick(float DeltaTime)
 		const uint8 JointTipIndex = static_cast<uint8>(Joint);
 		Collider->SetWorldTransform((JointTransforms[JointTipIndex]));
 	}
+	
+	FString Name;
+	int Index;
+	float Duration, Error, Confidence;
+	
+	if (!PoseRecognizer->GetRecognizedHandPose(Index, Name, Duration, Error, Confidence))
+	{
+		Name = "None";
+	}
+	
+	const FPoseTransition Transition = FPoseTransition(CurrentPose, FPose(Name));
+	OnPoseTransition.Broadcast(Transition);
+	
+	HandlePoseTransition(Transition);
 }
 
 void AVR_Hand_Tracked::RegenerateJointBoneMaps()
@@ -246,11 +261,70 @@ void AVR_Hand_Tracked::AnimateHand()
 	}
 }
 
-void AVR_Hand_Tracked::HandlePoseTransition(FPoseTransition& PoseTransition)
+void AVR_Hand_Tracked::GrabItem()
 {
-	//if is grab, then Grab()
+	TArray<AActor*> OverlappingActors;
+	IndexTipCollider -> GetOverlappingActors(OverlappingActors);
+		
+	for (auto* Actor : OverlappingActors)
+	{
+		if (!Actor || Actor == this) continue;
+
+		UE_LOG(LogTemp, Warning, TEXT("Currently overlapping: %s"), *Actor->GetName());
+			
+		auto* GrabbedActor = Cast<AGrababbleItem>(Actor);
+		if (!GrabbedActor) return;
+
+		GrabbedActor->AttachToComponent(
+			HandMesh,
+			FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+			TEXT("socket_palm"));
+
+		Grabbed = GrabbedActor;
+			
+		UPrimitiveComponent* Primitive = Grabbed->FindComponentByClass<UPrimitiveComponent>();
+		if (!Primitive)	return;
+			
+		Primitive->SetSimulatePhysics(false);
+	}
+		
+	TArray<UPrimitiveComponent*> OverlappingComponents;
+	IndexTipCollider -> GetOverlappingComponents(OverlappingComponents);
+		
+	for (const auto* Component : OverlappingComponents)
+	{
+		if (!Component) continue;
+			
+		UE_LOG(LogTemp, Warning, TEXT("Overlapping comp: %s"), *Component->GetName());
+	}
+}
+
+void AVR_Hand_Tracked::DropItem()
+{
+	if (Grabbed == nullptr)
+		return;
+		
+	Grabbed->DetachFromActor((FDetachmentTransformRules::KeepWorldTransform));
+	UPrimitiveComponent* Primitive = Grabbed->FindComponentByClass<UPrimitiveComponent>();
+	if (!Primitive)	return;
+			
+	Primitive->SetSimulatePhysics(true);
+		
+	Grabbed = nullptr;
+}
+
+void AVR_Hand_Tracked::HandlePoseTransition(const FPoseTransition& PoseTransition)
+{
+	const FPose OldPose = PoseTransition.OldPose;
+	const FPose NewPose = PoseTransition.NewPose;
 	
-	//if grab is over, then Drop()
+	if (NewPose.Name == "Grab")
+		GrabItem();
+	
+	if (OldPose.Name == "Grab")
+		DropItem();
+	
+	CurrentPose = PoseTransition.NewPose;
 }
 
 void AVR_Hand_Tracked::DrawJointMeshDebug()

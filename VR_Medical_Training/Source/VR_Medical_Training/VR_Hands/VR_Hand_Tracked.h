@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "HeadMountedDisplayTypes.h"
 #include "VR_Hand.h"
+#include "VR_Medical_Training/Gestures.h"
 #include "VR_Medical_Training/JointData.h"
 #include "VR_Hand_Tracked.generated.h"
 
@@ -10,6 +11,7 @@ struct FPoseTransition;
 class UPoseableMeshComponent;
 class UHandPoseRecognizer;
 class UHandGestureRecognizer;
+class AGrababbleItem;
 
 struct FTipBinding
 {
@@ -30,7 +32,8 @@ public:
 	UFUNCTION()
 	TArray<FName> GetBonePool() {return BonePool;}
 	
-	DECLARE_MULTICAST_DELEGATE_OneParam(OnPoseTransition, const FPoseTransition&);
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnPoseTransition, const FPoseTransition&);
+	FOnPoseTransition OnPoseTransition;
 
 protected:
 	virtual void BeginPlay() override;
@@ -96,8 +99,10 @@ private:
 	void DrawJointCoordsDebug();
 	void DrawJointNamesDebug();
 	void AnimateHand();
-	
-	void HandlePoseTransition(FPoseTransition& PoseTransition);
+	void GrabItem();
+	void DropItem();
+
+	void HandlePoseTransition(const FPoseTransition& PoseTransition);
 	
 	const TArray<FTipBinding> FingerTipBindings =
 	{
@@ -117,10 +122,15 @@ private:
 	UPROPERTY()	TObjectPtr<USphereComponent> PinkieTipCollider;
 	
 	UPROPERTY()
-	USkinnedAsset* CachedMesh = nullptr;
+	TObjectPtr<USkinnedAsset> CachedMesh = nullptr;
 	
 	UPROPERTY()
 	TArray<FName> BonePool;
+	
+	UPROPERTY()
+	TObjectPtr<AGrababbleItem> Grabbed = nullptr;
+	
+	FPose CurrentPose;
 	
 	FXRHandTrackingState TrackedHandData;
 	int JointCount = 26;

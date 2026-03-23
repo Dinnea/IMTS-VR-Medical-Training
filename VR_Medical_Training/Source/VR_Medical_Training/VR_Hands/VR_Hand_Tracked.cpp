@@ -3,6 +3,7 @@
 #include "HandGestureRecognizer.h"
 #include "HandPoseRecognizer.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
+#include "SphereComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Components/PoseableMeshComponent.h"
 
@@ -21,6 +22,27 @@ AVR_Hand_Tracked::AVR_Hand_Tracked()
 	
 	GestureRecognizer = CreateDefaultSubobject<UHandGestureRecognizer>("GestureRecognizer");
 	GestureRecognizer->SetupAttachment(RootComponent);
+	
+	ColliderParent = CreateDefaultSubobject<USceneComponent>("Colliders");
+	ColliderParent->SetupAttachment(RootComponent);
+	
+	ThumbTipCollider =  CreateDefaultSubobject<USphereComponent>("ThumbTipCollider");
+	IndexTipCollider = CreateDefaultSubobject<USphereComponent>("IndexTipCollider");
+	MiddleTipCollider = CreateDefaultSubobject<USphereComponent>("MiddleTipCollider");
+	RingTipCollider = CreateDefaultSubobject<USphereComponent>("RingTipCollider");
+	PinkieTipCollider = CreateDefaultSubobject<USphereComponent>("LittleTipCollider");
+	
+	FingertipColliders.Add(ThumbTipCollider);
+	FingertipColliders.Add(IndexTipCollider);
+	FingertipColliders.Add(MiddleTipCollider);
+	FingertipColliders.Add(RingTipCollider);
+	FingertipColliders.Add(PinkieTipCollider);
+	
+	for (const auto FingertipCollider : FingertipColliders)
+	{
+		FingertipCollider->SetupAttachment(ColliderParent);
+		FingertipCollider->SetSphereRadius(FingerTipColliderRadius);
+	}
 }
 
 void AVR_Hand_Tracked::BeginPlay()
@@ -56,12 +78,15 @@ void AVR_Hand_Tracked::PostLoad()
 void AVR_Hand_Tracked::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	
-	
-	if (const FName ChangedProperty = PropertyChangedEvent.GetMemberPropertyName(); 
-		ChangedProperty == GET_MEMBER_NAME_CHECKED(AVR_Hand_Tracked, JointBoneMaps))
+	const auto ChangedProperty = PropertyChangedEvent.GetMemberPropertyName();
+	if (ChangedProperty == GET_MEMBER_NAME_CHECKED(AVR_Hand_Tracked, JointBoneMaps))
 	{
 		CorrectBoneNames();
+	}
+	if (ChangedProperty == GET_MEMBER_NAME_CHECKED(AVR_Hand_Tracked, FingerTipColliderRadius))
+	{
+		for (const auto FingertipCollider : FingertipColliders)
+			FingertipCollider->SetSphereRadius(FingerTipColliderRadius);
 	}
 }
 
@@ -83,7 +108,11 @@ void AVR_Hand_Tracked::Tick(float DeltaTime)
 	if (bAnimateHand)
 		AnimateHand();
 	
-	//PoseRecognizer->GetRecognizedHandPose()
+	for (const auto& [Joint, Collider] : FingerTipBindings)
+	{
+		const uint8 JointTipIndex = static_cast<uint8>(Joint);
+		Collider->SetWorldTransform((JointTransforms[JointTipIndex]));
+	}
 }
 
 void AVR_Hand_Tracked::RegenerateJointBoneMaps()
@@ -214,9 +243,6 @@ void AVR_Hand_Tracked::AnimateHand()
 		FTransform ToUse = TransformOffset * JointTransforms[Index];
 		
 		HandMesh->SetBoneTransformByName(JBMap.BoneName, ToUse, EBoneSpaces::WorldSpace);
-		// HandMesh->FillComponentSpaceTransforms();
-		// HandMesh->FinalizeBoneTransform();
-		// HandMesh->MarkRenderDynamicDataDirty();
 	}
 }
 

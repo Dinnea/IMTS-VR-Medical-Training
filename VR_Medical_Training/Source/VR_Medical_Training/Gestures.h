@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Gestures.generated.h"
 
 USTRUCT(BlueprintType)
 struct FPose

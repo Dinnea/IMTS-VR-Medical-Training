@@ -33,16 +33,20 @@ AVR_Hand_Tracked::AVR_Hand_Tracked()
 	RingTipCollider = CreateDefaultSubobject<USphereComponent>("RingTipCollider");
 	PinkieTipCollider = CreateDefaultSubobject<USphereComponent>("LittleTipCollider");
 	
-	FingertipColliders.Add(ThumbTipCollider);
-	FingertipColliders.Add(IndexTipCollider);
-	FingertipColliders.Add(MiddleTipCollider);
-	FingertipColliders.Add(RingTipCollider);
-	FingertipColliders.Add(PinkieTipCollider);
 	
-	for (const auto FingertipCollider : FingertipColliders)
+	FingerTipBindings=
 	{
-		FingertipCollider->SetupAttachment(ColliderParent);
-		FingertipCollider->SetSphereRadius(FingerTipColliderRadius);
+		{ EJoint::ThumbTip,  ThumbTipCollider },
+		{ EJoint::IndexTip,  IndexTipCollider },
+		{ EJoint::MiddleTip, MiddleTipCollider },
+		{ EJoint::RingTip,   RingTipCollider },
+		{ EJoint::LittleTip, PinkieTipCollider }
+	};
+	
+	for (const auto [Joint, Collider] : FingerTipBindings)
+	{
+		Collider->SetupAttachment(ColliderParent);
+		Collider->SetSphereRadius(FingerTipColliderRadius);
 	}
 }
 
@@ -86,8 +90,8 @@ void AVR_Hand_Tracked::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 	}
 	if (ChangedProperty == GET_MEMBER_NAME_CHECKED(AVR_Hand_Tracked, FingerTipColliderRadius))
 	{
-		for (const auto FingertipCollider : FingertipColliders)
-			FingertipCollider->SetSphereRadius(FingerTipColliderRadius);
+		for (const auto [Joint, Collider] : FingerTipBindings)
+			Collider->SetSphereRadius(FingerTipColliderRadius);
 	}
 }
 
@@ -108,10 +112,6 @@ void AVR_Hand_Tracked::Tick(float DeltaTime)
 	
 	if (bAnimateHand)
 		AnimateHand();
-	
-	
-	
-
 	
 	FString Name;
 	int Index;
@@ -185,6 +185,7 @@ void AVR_Hand_Tracked::RecordJointTransforms()
 	for (const auto& [Joint, Collider] : FingerTipBindings)
 	{
 		const uint8 JointTipIndex = static_cast<uint8>(Joint);
+		if (Collider == nullptr) UE_LOG(LogTemp, Warning, TEXT("NULL COLLIDER"));
 		Collider->SetWorldTransform((JointTransforms[JointTipIndex]));
 	}
 }

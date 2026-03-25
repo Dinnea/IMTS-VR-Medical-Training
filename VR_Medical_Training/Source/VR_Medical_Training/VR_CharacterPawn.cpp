@@ -80,6 +80,22 @@ void AVR_CharacterPawn::SetupVRHands()
 	
 }
 
+void AVR_CharacterPawn::MoveForward(float Value)
+{
+	if (Controller && Value != 0.f)
+	{
+		AddMovementInput(GetActorForwardVector(), Value);
+	}
+}
+
+void AVR_CharacterPawn::MoveRight(float Value)
+{
+	if (Controller && Value != 0.f)
+	{
+		AddMovementInput(GetActorForwardVector(), Value);
+	}
+}
+
 void AVR_CharacterPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -88,5 +104,7 @@ void AVR_CharacterPawn::Tick(float DeltaTime)
 void AVR_CharacterPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	PlayerInputComponent->BindAxis(TEXT("MoveForward"), this, &AVR_CharacterPawn::MoveForward);
+	PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &AVR_CharacterPawn::MoveRight);
 }
 

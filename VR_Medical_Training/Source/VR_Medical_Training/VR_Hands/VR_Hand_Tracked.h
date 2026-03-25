@@ -40,6 +40,7 @@ protected:
 	virtual void PostLoad() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands|Tracking")
 	TObjectPtr<UHandPoseRecognizer> PoseRecognizer;
 	
@@ -48,9 +49,6 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Physics")
 	float FingerTipColliderRadius = 1;	
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VR_Hands|Physics")
-	TArray<TObjectPtr<USphereComponent>> FingertipColliders;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands|Visual")
 	TObjectPtr<UPoseableMeshComponent> HandMesh;
@@ -85,6 +83,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Visual|Settings")
 	FVector LabelOffset;
 	
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Visual|Settings")
 	bool bAnimateHand;
 	
@@ -104,14 +103,8 @@ private:
 
 	void HandlePoseTransition(const FPoseTransition& PoseTransition);
 	
-	const TArray<FTipBinding> FingerTipBindings =
-	{
-		{ EJoint::ThumbTip,  ThumbTipCollider },
-		{ EJoint::IndexTip,  IndexTipCollider },
-		{ EJoint::MiddleTip, MiddleTipCollider },
-		{ EJoint::RingTip,   RingTipCollider },
-		{ EJoint::LittleTip, PinkieTipCollider }
-	};
+	TArray<FTipBinding> FingerTipBindings;
+	
 	
 	UPROPERTY() TObjectPtr<USceneComponent> ColliderParent;
 	

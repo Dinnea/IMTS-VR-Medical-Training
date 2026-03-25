@@ -18,7 +18,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+	
 protected:
 	virtual void BeginPlay() override;
 	
@@ -37,6 +37,8 @@ private:
 	void SetupVRTrackingOrigin();
 	void SetupInputContext();
 	void SetupVRHands();
+	void MoveForward(float Value);
+	void MoveRight(float Value);
 	
 	TObjectPtr<AVR_Hand> SpawnHand(UWorld* World, TSubclassOf<AVR_Hand> HandClass) const;
 	

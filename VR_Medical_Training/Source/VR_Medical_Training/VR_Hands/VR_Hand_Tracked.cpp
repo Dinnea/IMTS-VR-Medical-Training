@@ -21,8 +21,8 @@ AVR_Hand_Tracked::AVR_Hand_Tracked()
 	PoseRecognizer = CreateDefaultSubobject<UHandPoseRecognizer>("PoseRecognizer");
 	PoseRecognizer->SetupAttachment(RootComponent);
 	
-	GestureRecognizer = CreateDefaultSubobject<UHandGestureRecognizer>("GestureRecognizer");
-	GestureRecognizer->SetupAttachment(RootComponent);
+	// GestureRecognizer = CreateDefaultSubobject<UHandGestureRecognizer>("GestureRecognizer");
+	// GestureRecognizer->SetupAttachment(RootComponent);
 	
 	ColliderParent = CreateDefaultSubobject<USceneComponent>("Colliders");
 	ColliderParent->SetupAttachment(RootComponent);
@@ -109,11 +109,9 @@ void AVR_Hand_Tracked::Tick(float DeltaTime)
 	if (bAnimateHand)
 		AnimateHand();
 	
-	for (const auto& [Joint, Collider] : FingerTipBindings)
-	{
-		const uint8 JointTipIndex = static_cast<uint8>(Joint);
-		Collider->SetWorldTransform((JointTransforms[JointTipIndex]));
-	}
+	
+	
+
 	
 	FString Name;
 	int Index;
@@ -182,6 +180,12 @@ void AVR_Hand_Tracked::RecordJointTransforms()
 	{
 		JointTransforms[i].SetRotation(JointsRotations[i]);
 		JointTransforms[i].SetLocation(JointsLocations[i]);
+	}
+	
+	for (const auto& [Joint, Collider] : FingerTipBindings)
+	{
+		const uint8 JointTipIndex = static_cast<uint8>(Joint);
+		Collider->SetWorldTransform((JointTransforms[JointTipIndex]));
 	}
 }
 

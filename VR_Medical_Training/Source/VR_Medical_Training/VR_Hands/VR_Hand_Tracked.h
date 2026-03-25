@@ -43,8 +43,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands|Tracking")
 	TObjectPtr<UHandPoseRecognizer> PoseRecognizer;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands|Tracking")
-	TObjectPtr<UHandGestureRecognizer> GestureRecognizer;
+	// UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands|Tracking")
+	// TObjectPtr<UHandGestureRecognizer> GestureRecognizer;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Physics")
 	float FingerTipColliderRadius = 1;	

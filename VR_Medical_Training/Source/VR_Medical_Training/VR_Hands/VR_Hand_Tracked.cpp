@@ -6,6 +6,7 @@
 #include "SphereComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Components/PoseableMeshComponent.h"
+#include "Engine/SkeletalMeshSocket.h"
 #include "VR_Medical_Training/GrababbleItem.h"
 
 AVR_Hand_Tracked::AVR_Hand_Tracked()
@@ -126,6 +127,13 @@ void AVR_Hand_Tracked::Tick(float DeltaTime)
 	OnPoseTransition.Broadcast(Transition);
 	
 	HandlePoseTransition(Transition);
+	
+	PoseRecognizer->LogEncodedHandPose();
+	
+	FHandPose Pose = PoseRecognizer->GetCurrentPose();
+	FString test = Pose.CustomEncodedPose;
+	
+	PoseRecognizer->Poses.Add(Pose);
 }
 
 void AVR_Hand_Tracked::RegenerateJointBoneMaps()
@@ -274,16 +282,17 @@ void AVR_Hand_Tracked::GrabItem()
 	for (auto* Actor : OverlappingActors)
 	{
 		if (!Actor || Actor == this) continue;
-
-		UE_LOG(LogTemp, Warning, TEXT("Currently overlapping: %s"), *Actor->GetName());
+		
 			
 		auto* GrabbedActor = Cast<AGrababbleItem>(Actor);
 		if (!GrabbedActor) return;
 
+		const FName SocketName = (HandType == EControllerHand::Left) ? "socket_palm_l" : "socket_palm_r"; 
+
 		GrabbedActor->AttachToComponent(
 			HandMesh,
 			FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-			TEXT("socket_palm"));
+			SocketName);
 
 		Grabbed = GrabbedActor;
 			
@@ -291,16 +300,6 @@ void AVR_Hand_Tracked::GrabItem()
 		if (!Primitive)	return;
 			
 		Primitive->SetSimulatePhysics(false);
-	}
-		
-	TArray<UPrimitiveComponent*> OverlappingComponents;
-	IndexTipCollider -> GetOverlappingComponents(OverlappingComponents);
-		
-	for (const auto* Component : OverlappingComponents)
-	{
-		if (!Component) continue;
-			
-		UE_LOG(LogTemp, Warning, TEXT("Overlapping comp: %s"), *Component->GetName());
 	}
 }
 

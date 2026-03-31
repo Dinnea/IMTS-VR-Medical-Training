@@ -28,6 +28,8 @@ public:
 	AVR_Hand_Tracked();
 	void InitializeJointData();
 	virtual void Tick(float DeltaTime) override;
+	virtual void PostLoad() override;
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	
 	UFUNCTION()
 	TArray<FName> GetBonePool() {return BonePool;}
@@ -37,9 +39,6 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	virtual void PostLoad() override;
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands|Tracking")
 	TObjectPtr<UHandPoseRecognizer> PoseRecognizer;

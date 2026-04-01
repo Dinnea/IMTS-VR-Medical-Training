@@ -1,54 +1,22 @@
 #include "VR_Hand_Tracked.h"
-
 #include "HandGestureRecognizer.h"
 #include "HandPoseRecognizer.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "SphereComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Components/PoseableMeshComponent.h"
-#include "Engine/SkeletalMeshSocket.h"
+#include "VR_Medical_Training/HandPoseLibrary.h"
 #include "VR_Medical_Training/GrababbleItem.h"
 
 AVR_Hand_Tracked::AVR_Hand_Tracked()
 {
 	PrimaryActorTick.bCanEverTick = true;
 		
-	HandMesh = CreateDefaultSubobject<UPoseableMeshComponent>("HandMesh");
-	RootComponent = HandMesh;
+	SetupComponents();
 	
-	JointMeshInstance = CreateDefaultSubobject<UInstancedStaticMeshComponent>("JointMeshInstance");
-	JointMeshInstance->SetupAttachment(RootComponent);
+	SetupColliders();
 	
-	PoseRecognizer = CreateDefaultSubobject<UHandPoseRecognizer>("PoseRecognizer");
-	PoseRecognizer->SetupAttachment(RootComponent);
-	
-	// GestureRecognizer = CreateDefaultSubobject<UHandGestureRecognizer>("GestureRecognizer");
-	// GestureRecognizer->SetupAttachment(RootComponent);
-	
-	ColliderParent = CreateDefaultSubobject<USceneComponent>("Colliders");
-	ColliderParent->SetupAttachment(RootComponent);
-	
-	ThumbTipCollider =  CreateDefaultSubobject<USphereComponent>("ThumbTipCollider");
-	IndexTipCollider = CreateDefaultSubobject<USphereComponent>("IndexTipCollider");
-	MiddleTipCollider = CreateDefaultSubobject<USphereComponent>("MiddleTipCollider");
-	RingTipCollider = CreateDefaultSubobject<USphereComponent>("RingTipCollider");
-	PinkieTipCollider = CreateDefaultSubobject<USphereComponent>("LittleTipCollider");
-	
-	
-	FingerTipBindings=
-	{
-		{ EJoint::ThumbTip,  ThumbTipCollider },
-		{ EJoint::IndexTip,  IndexTipCollider },
-		{ EJoint::MiddleTip, MiddleTipCollider },
-		{ EJoint::RingTip,   RingTipCollider },
-		{ EJoint::LittleTip, PinkieTipCollider }
-	};
-	
-	for (const auto [Joint, Collider] : FingerTipBindings)
-	{
-		Collider->SetupAttachment(ColliderParent);
-		Collider->SetSphereRadius(FingerTipColliderRadius);
-	}
+	SetUpPoseDatabase();
 }
 
 void AVR_Hand_Tracked::BeginPlay()
@@ -96,6 +64,20 @@ void AVR_Hand_Tracked::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 	}
 }
 
+void AVR_Hand_Tracked::RegisterPose() const
+{
+	UE_LOG(LogTemp, Warning, TEXT("Registering pose..."));
+	PoseRecognizer->LogEncodedHandPose();
+
+	const FHandPose Pose = PoseRecognizer->GetCurrentPose();
+	FString test = Pose.CustomEncodedPose;
+	
+	if (HandPoseLibrary == nullptr)
+		return;
+	
+	HandPoseLibrary->Poses.Add(Pose);
+}
+
 void AVR_Hand_Tracked::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -126,14 +108,57 @@ void AVR_Hand_Tracked::Tick(float DeltaTime)
 	const FPoseTransition Transition = FPoseTransition(CurrentPose, FPose(Name));
 	OnPoseTransition.Broadcast(Transition);
 	
-	HandlePoseTransition(Transition);
+	//HandlePoseTransition(Transition);
+}
+
+void AVR_Hand_Tracked::SetupComponents()
+{
+	HandMesh = CreateDefaultSubobject<UPoseableMeshComponent>("HandMesh");
+	RootComponent = HandMesh;
 	
-	PoseRecognizer->LogEncodedHandPose();
+	JointMeshInstance = CreateDefaultSubobject<UInstancedStaticMeshComponent>("JointMeshInstance");
+	JointMeshInstance->SetupAttachment(RootComponent);
 	
-	FHandPose Pose = PoseRecognizer->GetCurrentPose();
-	FString test = Pose.CustomEncodedPose;
+	PoseRecognizer = CreateDefaultSubobject<UHandPoseRecognizer>("PoseRecognizer");
+	PoseRecognizer->SetupAttachment(RootComponent);
 	
-	PoseRecognizer->Poses.Add(Pose);
+	GestureRecognizer = CreateDefaultSubobject<UHandGestureRecognizer>("GestureRecognizer");
+	GestureRecognizer->SetupAttachment(PoseRecognizer);
+	
+	ColliderParent = CreateDefaultSubobject<USceneComponent>("Colliders");
+	ColliderParent->SetupAttachment(RootComponent);
+}
+
+void AVR_Hand_Tracked::SetupColliders()
+{
+	ThumbTipCollider =  CreateDefaultSubobject<USphereComponent>("ThumbTipCollider");
+	IndexTipCollider = CreateDefaultSubobject<USphereComponent>("IndexTipCollider");
+	MiddleTipCollider = CreateDefaultSubobject<USphereComponent>("MiddleTipCollider");
+	RingTipCollider = CreateDefaultSubobject<USphereComponent>("RingTipCollider");
+	PinkieTipCollider = CreateDefaultSubobject<USphereComponent>("LittleTipCollider");
+	
+	FingerTipBindings=
+	{
+		{ EJoint::ThumbTip,  ThumbTipCollider },
+		{ EJoint::IndexTip,  IndexTipCollider },
+		{ EJoint::MiddleTip, MiddleTipCollider },
+		{ EJoint::RingTip,   RingTipCollider },
+		{ EJoint::LittleTip, PinkieTipCollider }
+	};
+	
+	for (const auto [Joint, Collider] : FingerTipBindings)
+	{
+		Collider->SetupAttachment(ColliderParent);
+		Collider->SetSphereRadius(FingerTipColliderRadius);
+	}
+}
+
+void AVR_Hand_Tracked::SetUpPoseDatabase()
+{
+	if (HandPoseLibrary == nullptr)
+		return;
+	
+	PoseRecognizer->Poses = HandPoseLibrary->Poses;
 }
 
 void AVR_Hand_Tracked::RegenerateJointBoneMaps()

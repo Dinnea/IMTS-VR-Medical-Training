@@ -3,6 +3,7 @@
 #include "IXRTrackingSystem.h"
 #include "VR_Hands/VR_Hand.h"
 #include "Camera/CameraComponent.h"
+#include "VR_Hands/VR_Hand_Tracked.h"
 
 AVR_CharacterPawn::AVR_CharacterPawn()
 {
@@ -13,6 +14,12 @@ AVR_CharacterPawn::AVR_CharacterPawn()
 	
 	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
 	Camera->SetupAttachment(Origin);
+}
+
+void AVR_CharacterPawn::RegisterHandPose(AVR_Hand* Hand)
+{
+	if (const auto* VR_Hand = Cast<AVR_Hand_Tracked>(Hand))
+		VR_Hand->RegisterPose();
 }
 
 void AVR_CharacterPawn::BeginPlay()

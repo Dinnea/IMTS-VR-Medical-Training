@@ -7,6 +7,7 @@
 #include "VR_Medical_Training/JointData.h"
 #include "VR_Hand_Tracked.generated.h"
 
+class UHandPoseLibrary;
 struct FPoseTransition;
 class UPoseableMeshComponent;
 class UHandPoseRecognizer;
@@ -24,13 +25,19 @@ class VR_MEDICAL_TRAINING_API AVR_Hand_Tracked : public AVR_Hand
 {
 	GENERATED_BODY()
 	
-public:	
+public:
+	void SetupComponents();
+	void SetupColliders();
+	void SetUpPoseDatabase();
 	AVR_Hand_Tracked();
 	void InitializeJointData();
 	virtual void Tick(float DeltaTime) override;
 	virtual void PostLoad() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	
+	UFUNCTION(BlueprintCallable)
+	void RegisterPose() const;
+
 	UFUNCTION()
 	TArray<FName> GetBonePool() {return BonePool;}
 	
@@ -40,16 +47,19 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands|Tracking")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Tracking")
 	TObjectPtr<UHandPoseRecognizer> PoseRecognizer;
 	
-	// UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands|Tracking")
-	// TObjectPtr<UHandGestureRecognizer> GestureRecognizer;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Tracking")
+	TObjectPtr<UHandGestureRecognizer> GestureRecognizer;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="VR_Hands|Tracking")
+	TObjectPtr<UHandPoseLibrary> HandPoseLibrary;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Physics")
 	float FingerTipColliderRadius = 1;	
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands|Visual")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Visual")
 	TObjectPtr<UPoseableMeshComponent> HandMesh;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Visual")
@@ -82,7 +92,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Visual|Settings")
 	FVector LabelOffset;
 	
-	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Visual|Settings")
 	bool bAnimateHand;
 	
@@ -103,7 +112,6 @@ private:
 	void HandlePoseTransition(const FPoseTransition& PoseTransition);
 	
 	TArray<FTipBinding> FingerTipBindings;
-	
 	
 	UPROPERTY() TObjectPtr<USceneComponent> ColliderParent;
 	

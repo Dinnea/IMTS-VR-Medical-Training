@@ -35,18 +35,40 @@ enum class EJoint : uint8
 	None = 99
 };
 
+static FString EJointToString(const uint8 Joint)
+{
+	const UEnum* Enum = StaticEnum<EJoint>();
+	return  Enum ? Enum->GetNameStringByValue(Joint) : "Invalid";
+}
+
+static FString EJointToString(EJoint Joint)
+{
+	return EJointToString(static_cast<uint8>(Joint));
+}
+
+static FName EJointToName(const EJoint Joint)
+{
+	return FName(EJointToString(Joint));
+}
+
+static FName EJointToName(const uint8 Joint)
+{
+	return FName(EJointToString(Joint));
+}
+
 USTRUCT(BlueprintType)
 struct FJointBoneMap
 {
 	GENERATED_BODY()
 
 	FJointBoneMap()
-	{
-	}
+	{}
 	
 	explicit  FJointBoneMap(const EJoint InJoint) : Joint(InJoint)
-	{
-	}
+	{}
+	
+	explicit  FJointBoneMap(const EJoint InJoint, const FName InName) : Joint(InJoint), BoneName(InName)
+	{}
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	EJoint Joint = EJoint::None;

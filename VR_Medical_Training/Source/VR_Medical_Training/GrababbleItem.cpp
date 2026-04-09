@@ -1,27 +1,38 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "GrababbleItem.h"
 
-// Sets default values
 AGrababbleItem::AGrababbleItem()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+	
+	Mesh = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
+	RootComponent = Mesh;
+	
+	Mesh->SetEnableGravity(true);
 }
 
-// Called when the game starts or when spawned
+void AGrababbleItem::Grab(USceneComponent* Source, const FName SocketName)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Grabbing..."));
+	
+	Mesh->AttachToComponent(Source, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
+	Mesh->SetSimulatePhysics(false);
+}
+
+void AGrababbleItem::Drop()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Dropping..."));
+	
+	Mesh->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+	Mesh->SetSimulatePhysics(true);
+}
+
 void AGrababbleItem::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
-// Called every frame
 void AGrababbleItem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 

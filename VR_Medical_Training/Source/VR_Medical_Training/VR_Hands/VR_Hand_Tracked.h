@@ -7,7 +7,6 @@
 #include "VR_Medical_Training/JointData.h"
 #include "VR_Hand_Tracked.generated.h"
 
-class UHandPoseLibrary;
 struct FPoseTransition;
 class UPoseableMeshComponent;
 class UHandPoseRecognizer;
@@ -28,16 +27,12 @@ class VR_MEDICAL_TRAINING_API AVR_Hand_Tracked : public AVR_Hand
 public:
 	void SetupComponents();
 	void SetupColliders();
-	void SetUpPoseDatabase();
 	AVR_Hand_Tracked();
 	void InitializeJointData();
 	virtual void Tick(float DeltaTime) override;
 	virtual void PostLoad() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	
-	UFUNCTION(BlueprintCallable)
-	void RegisterPose() const;
-
 	UFUNCTION()
 	TArray<FName> GetBonePool() {return BonePool;}
 	
@@ -47,14 +42,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Tracking")
-	TObjectPtr<UHandPoseRecognizer> PoseRecognizer;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Tracking")
-	TObjectPtr<UHandGestureRecognizer> GestureRecognizer;
-	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="VR_Hands|Tracking")
-	TObjectPtr<UHandPoseLibrary> HandPoseLibrary;
+	float PinchThreshold = 1; 
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Physics")
 	float FingerTipColliderRadius = 1;	
@@ -108,8 +97,9 @@ private:
 	void AnimateHand();
 	void GrabItem();
 	void DropItem();
-
-	void HandlePoseTransition(const FPoseTransition& PoseTransition);
+	
+	bool IsPinched();
+	
 	
 	TArray<FTipBinding> FingerTipBindings;
 	
@@ -129,8 +119,6 @@ private:
 	
 	UPROPERTY()
 	TObjectPtr<AGrababbleItem> Grabbed = nullptr;
-	
-	FPose CurrentPose;
 	
 	FXRHandTrackingState TrackedHandData;
 	int JointCount = 26;

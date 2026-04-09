@@ -10,16 +10,10 @@ AVR_CharacterPawn::AVR_CharacterPawn()
 	PrimaryActorTick.bCanEverTick = true;
 	
 	Origin = CreateDefaultSubobject<USceneComponent>("Origin");
-	Origin->SetupAttachment(GetMesh());
+	RootComponent = Origin;
 	
 	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
 	Camera->SetupAttachment(Origin);
-}
-
-void AVR_CharacterPawn::RegisterHandPose(AVR_Hand* Hand)
-{
-	if (const auto* VR_Hand = Cast<AVR_Hand_Tracked>(Hand))
-		VR_Hand->RegisterPose();
 }
 
 void AVR_CharacterPawn::BeginPlay()
@@ -87,31 +81,7 @@ void AVR_CharacterPawn::SetupVRHands()
 	
 }
 
-void AVR_CharacterPawn::MoveForward(float Value)
-{
-	if (Controller && Value != 0.f)
-	{
-		AddMovementInput(GetActorForwardVector(), Value);
-	}
-}
-
-void AVR_CharacterPawn::MoveRight(float Value)
-{
-	if (Controller && Value != 0.f)
-	{
-		AddMovementInput(GetActorForwardVector(), Value);
-	}
-}
-
 void AVR_CharacterPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
-
-void AVR_CharacterPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	PlayerInputComponent->BindAxis(TEXT("MoveForward"), this, &AVR_CharacterPawn::MoveForward);
-	PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &AVR_CharacterPawn::MoveRight);
-}
-

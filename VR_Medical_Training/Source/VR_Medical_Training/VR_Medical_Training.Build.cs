@@ -10,7 +10,7 @@ public class VR_Medical_Training : ModuleRules
 	
 		PublicDependencyModuleNames.AddRange(new string[] 
 			{ "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", 
-				"UMG", "XRBase", "OpenXRHandTracking", "OculusHandPoseRecognition" });
+				"UMG", "XRBase", "OpenXRHandTracking" });
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });

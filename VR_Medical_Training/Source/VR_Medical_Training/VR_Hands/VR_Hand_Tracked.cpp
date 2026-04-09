@@ -1,11 +1,8 @@
 #include "VR_Hand_Tracked.h"
-#include "HandGestureRecognizer.h"
-#include "HandPoseRecognizer.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
-#include "SphereComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Components/PoseableMeshComponent.h"
-#include "VR_Medical_Training/HandPoseLibrary.h"
+#include "Components/SphereComponent.h"
 #include "VR_Medical_Training/GrababbleItem.h"
 
 AVR_Hand_Tracked::AVR_Hand_Tracked()
@@ -15,8 +12,6 @@ AVR_Hand_Tracked::AVR_Hand_Tracked()
 	SetupComponents();
 	
 	SetupColliders();
-	
-	SetUpPoseDatabase();
 }
 
 void AVR_Hand_Tracked::BeginPlay()
@@ -24,27 +19,14 @@ void AVR_Hand_Tracked::BeginPlay()
 	Super::BeginPlay();
 	
 	InitializeJointData();
+	
+	Grabbed = nullptr;
 }
 
 
 void AVR_Hand_Tracked::PostLoad()
 {
 	Super::PostLoad();
-	
-	// Check current mesh
-	USkinnedAsset* CurrentMesh = HandMesh->GetSkinnedAsset();
-	UE_LOG(LogTemp, Warning, TEXT("is empty? %s"), JointBoneMaps.IsEmpty()? TEXT("TRUE") : TEXT("FALSE"));
-	
-	if (CurrentMesh == CachedMesh && !JointBoneMaps.IsEmpty())
-		return;
-	
-	if (!CurrentMesh)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("No mesh assigned yet"));
-		return;
-	}
-	
-	CachedMesh = CurrentMesh;
 	
 	RegenerateJointBoneMaps();
 }
@@ -53,29 +35,21 @@ void AVR_Hand_Tracked::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 	const auto ChangedProperty = PropertyChangedEvent.GetMemberPropertyName();
-	if (ChangedProperty == GET_MEMBER_NAME_CHECKED(AVR_Hand_Tracked, JointBoneMaps))
-	{
-		CorrectBoneNames();
-	}
+	// if (ChangedProperty == GET_MEMBER_NAME_CHECKED(AVR_Hand_Tracked, JointBoneMaps))
+	// {
+	// 	//CorrectBoneNames();
+	// }
+	//
+	// if (ChangedProperty == GET_MEMBER_NAME_CHECKED(AVR_Hand_Tracked, HandMesh->SkeletalMesh))
+	// {
+	// 	RegenerateJointBoneMaps();
+	// }
+	
 	if (ChangedProperty == GET_MEMBER_NAME_CHECKED(AVR_Hand_Tracked, FingerTipColliderRadius))
 	{
 		for (const auto [Joint, Collider] : FingerTipBindings)
 			Collider->SetSphereRadius(FingerTipColliderRadius);
 	}
-}
-
-void AVR_Hand_Tracked::RegisterPose() const
-{
-	UE_LOG(LogTemp, Warning, TEXT("Registering pose..."));
-	PoseRecognizer->LogEncodedHandPose();
-
-	const FHandPose Pose = PoseRecognizer->GetCurrentPose();
-	FString test = Pose.CustomEncodedPose;
-	
-	if (HandPoseLibrary == nullptr)
-		return;
-	
-	HandPoseLibrary->Poses.Add(Pose);
 }
 
 void AVR_Hand_Tracked::Tick(float DeltaTime)
@@ -96,19 +70,8 @@ void AVR_Hand_Tracked::Tick(float DeltaTime)
 	if (bAnimateHand)
 		AnimateHand();
 	
-	FString Name;
-	int Index;
-	float Duration, Error, Confidence;
-	
-	if (!PoseRecognizer->GetRecognizedHandPose(Index, Name, Duration, Error, Confidence))
-	{
-		Name = "None";
-	}
-	
-	const FPoseTransition Transition = FPoseTransition(CurrentPose, FPose(Name));
-	OnPoseTransition.Broadcast(Transition);
-	
-	//HandlePoseTransition(Transition);
+	if (IsPinched()) GrabItem();
+	else DropItem();
 }
 
 void AVR_Hand_Tracked::SetupComponents()
@@ -118,12 +81,6 @@ void AVR_Hand_Tracked::SetupComponents()
 	
 	JointMeshInstance = CreateDefaultSubobject<UInstancedStaticMeshComponent>("JointMeshInstance");
 	JointMeshInstance->SetupAttachment(RootComponent);
-	
-	PoseRecognizer = CreateDefaultSubobject<UHandPoseRecognizer>("PoseRecognizer");
-	PoseRecognizer->SetupAttachment(RootComponent);
-	
-	GestureRecognizer = CreateDefaultSubobject<UHandGestureRecognizer>("GestureRecognizer");
-	GestureRecognizer->SetupAttachment(PoseRecognizer);
 	
 	ColliderParent = CreateDefaultSubobject<USceneComponent>("Colliders");
 	ColliderParent->SetupAttachment(RootComponent);
@@ -153,16 +110,22 @@ void AVR_Hand_Tracked::SetupColliders()
 	}
 }
 
-void AVR_Hand_Tracked::SetUpPoseDatabase()
-{
-	if (HandPoseLibrary == nullptr)
-		return;
-	
-	PoseRecognizer->Poses = HandPoseLibrary->Poses;
-}
-
 void AVR_Hand_Tracked::RegenerateJointBoneMaps()
 {
+	// Check current mesh
+	USkinnedAsset* CurrentMesh = HandMesh->GetSkinnedAsset();
+	UE_LOG(LogTemp, Warning, TEXT("is empty? %s"), JointBoneMaps.IsEmpty()? TEXT("TRUE") : TEXT("FALSE"));
+	
+	if (CurrentMesh == CachedMesh && !JointBoneMaps.IsEmpty())
+		return;
+	
+	if (!CurrentMesh)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No mesh assigned yet"));
+		return;
+	}
+	
+	CachedMesh = CurrentMesh;
 	JointBoneMaps.Empty();	
 	
 	const FReferenceSkeleton& RefSkeleton = CachedMesh->GetRefSkeleton();	
@@ -172,7 +135,20 @@ void AVR_Hand_Tracked::RegenerateJointBoneMaps()
 	UE_LOG(LogTemp, Warning, TEXT("Bone count is: %d"), BonePool.Num());
 	
 	for (int i = 0; i<JointCount; i++)
+	{
 		JointBoneMaps.Add(FJointBoneMap(static_cast<EJoint>(i)));
+
+	FString JointName = EJointToString(i);
+		
+		for (auto BoneName : BonePool)
+		{
+			if (!BoneName.ToString().Contains(JointName))
+				continue;
+			
+			JointBoneMaps.Last().BoneName = BoneName;
+		}
+	}
+	
 }
 
 void AVR_Hand_Tracked::InitializeJointData()
@@ -301,30 +277,25 @@ void AVR_Hand_Tracked::AnimateHand()
 
 void AVR_Hand_Tracked::GrabItem()
 {
+	if (Grabbed!=nullptr)
+		return;
+	
 	TArray<AActor*> OverlappingActors;
 	IndexTipCollider -> GetOverlappingActors(OverlappingActors);
-		
+	
+	
 	for (auto* Actor : OverlappingActors)
 	{
 		if (!Actor || Actor == this) continue;
 		
-			
 		auto* GrabbedActor = Cast<AGrababbleItem>(Actor);
 		if (!GrabbedActor) return;
+		UE_LOG(LogTemp, Warning, TEXT("Valid actor"));
+		const FName SocketName = "Socket_PinchHold";
 
-		const FName SocketName = (HandType == EControllerHand::Left) ? "socket_palm_l" : "socket_palm_r"; 
-
-		GrabbedActor->AttachToComponent(
-			HandMesh,
-			FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-			SocketName);
+		GrabbedActor->Grab(HandMesh, SocketName);
 
 		Grabbed = GrabbedActor;
-			
-		UPrimitiveComponent* Primitive = Grabbed->FindComponentByClass<UPrimitiveComponent>();
-		if (!Primitive)	return;
-			
-		Primitive->SetSimulatePhysics(false);
 	}
 }
 
@@ -333,27 +304,21 @@ void AVR_Hand_Tracked::DropItem()
 	if (Grabbed == nullptr)
 		return;
 		
-	Grabbed->DetachFromActor((FDetachmentTransformRules::KeepWorldTransform));
-	UPrimitiveComponent* Primitive = Grabbed->FindComponentByClass<UPrimitiveComponent>();
-	if (!Primitive)	return;
-			
-	Primitive->SetSimulatePhysics(true);
+	Grabbed->Drop();
 		
 	Grabbed = nullptr;
 }
 
-void AVR_Hand_Tracked::HandlePoseTransition(const FPoseTransition& PoseTransition)
+bool AVR_Hand_Tracked::IsPinched()
 {
-	const FPose OldPose = PoseTransition.OldPose;
-	const FPose NewPose = PoseTransition.NewPose;
+	const FTransform Thumb =  JointTransforms[static_cast<int>(EHandKeypoint::ThumbTip)];
+	const FTransform Index = JointTransforms[static_cast<int>(EHandKeypoint::IndexTip)];
+
+	const float	Distance = FVector::Dist(Thumb.GetLocation(), Index.GetLocation());
 	
-	if (NewPose.Name == "Grab")
-		GrabItem();
+	if (Distance < PinchThreshold) return true;
 	
-	if (OldPose.Name == "Grab")
-		DropItem();
-	
-	CurrentPose = PoseTransition.NewPose;
+	return false;
 }
 
 void AVR_Hand_Tracked::DrawJointMeshDebug()
@@ -369,8 +334,7 @@ void AVR_Hand_Tracked::DrawJointMeshDebug()
 		
 		return;
 	}
+	
 	for (int i = 0; i < JointCount; i++)
-	{
 		JointMeshInstance->UpdateInstanceTransform(JointInstanceIndex[i], JointTransforms[i], true);
-	}
 }

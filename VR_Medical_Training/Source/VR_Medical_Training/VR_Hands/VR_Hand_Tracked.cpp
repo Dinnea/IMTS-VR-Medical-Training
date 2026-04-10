@@ -72,6 +72,9 @@ void AVR_Hand_Tracked::Tick(float DeltaTime)
 	
 	if (IsPinched()) GrabItem();
 	else if (ShouldDropItem()) DropItem();
+	
+	if (Grabbed && Grabbed->OnSpawn)
+			UE_LOG(LogTemp, Warning, TEXT("OnSpawn true"));
 }
 
 bool AVR_Hand_Tracked::ShouldDropItem()
@@ -82,7 +85,7 @@ bool AVR_Hand_Tracked::ShouldDropItem()
 		return !IsPinched() && Grabbed != nullptr;
 		
 	case EGrabMode::StickToHand:
-		if (Grabbed != nullptr)
+		if (Grabbed)
 			return !IsPinched() && Grabbed->OnSpawn;
 		break;
 	}
@@ -320,12 +323,7 @@ void AVR_Hand_Tracked::GrabItem()
 
 void AVR_Hand_Tracked::DropItem()
 {
-	if (Grabbed == nullptr)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Empty hand"));
-		return;
-	}
-		
+	UE_LOG(LogTemp, Warning, TEXT("Drop item"));
 	Grabbed->Drop();
 		
 	Grabbed = nullptr;

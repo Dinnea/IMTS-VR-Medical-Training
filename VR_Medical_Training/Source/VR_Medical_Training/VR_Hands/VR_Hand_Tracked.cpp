@@ -71,7 +71,23 @@ void AVR_Hand_Tracked::Tick(float DeltaTime)
 		AnimateHand();
 	
 	if (IsPinched()) GrabItem();
-	else DropItem();
+	else if (ShouldDropItem()) DropItem();
+}
+
+bool AVR_Hand_Tracked::ShouldDropItem()
+{
+	switch (GrabMode)
+	{
+	case EGrabMode::Realistic:
+		return !IsPinched() && Grabbed != nullptr;
+		
+	case EGrabMode::StickToHand:
+		if (Grabbed != nullptr)
+			return !IsPinched() && Grabbed->OnSpawn;
+		break;
+	}
+	
+	return false;
 }
 
 void AVR_Hand_Tracked::SetupComponents()
@@ -167,8 +183,8 @@ void AVR_Hand_Tracked::RecordJointTransforms()
 	
 	if (!TrackedHandData.bValid)
 	{
-		UE_LOG(LogTemp, Warning,
-				TEXT("Hand tracking data received is invalid / empty, hands will not be drawn."));
+		// UE_LOG(LogTemp, Warning,
+		// 		TEXT("Hand tracking data received is invalid / empty, hands will not be drawn."));
 		return;
 	}
 	
@@ -278,7 +294,10 @@ void AVR_Hand_Tracked::AnimateHand()
 void AVR_Hand_Tracked::GrabItem()
 {
 	if (Grabbed!=nullptr)
+	{
+		//UE_LOG(LogTemp, Warning, TEXT("Already holding actor"));
 		return;
+	}
 	
 	TArray<AActor*> OverlappingActors;
 	IndexTipCollider -> GetOverlappingActors(OverlappingActors);
@@ -289,7 +308,7 @@ void AVR_Hand_Tracked::GrabItem()
 		if (!Actor || Actor == this) continue;
 		
 		auto* GrabbedActor = Cast<AGrababbleItem>(Actor);
-		if (!GrabbedActor) return;
+		if (!GrabbedActor) continue;
 		UE_LOG(LogTemp, Warning, TEXT("Valid actor"));
 		const FName SocketName = "Socket_PinchHold";
 
@@ -302,7 +321,10 @@ void AVR_Hand_Tracked::GrabItem()
 void AVR_Hand_Tracked::DropItem()
 {
 	if (Grabbed == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Empty hand"));
 		return;
+	}
 		
 	Grabbed->Drop();
 		
@@ -313,10 +335,14 @@ bool AVR_Hand_Tracked::IsPinched()
 {
 	const FTransform Thumb =  JointTransforms[static_cast<int>(EHandKeypoint::ThumbTip)];
 	const FTransform Index = JointTransforms[static_cast<int>(EHandKeypoint::IndexTip)];
+	const FTransform Middle = JointTransforms[static_cast<int>(EHandKeypoint::MiddleTip)];
 
-	const float	Distance = FVector::Dist(Thumb.GetLocation(), Index.GetLocation());
+	const float	Distance1 = FVector::Dist(Thumb.GetLocation(), Index.GetLocation());
+	const float Distance2 = FVector::Dist(Thumb.GetLocation(), Middle.GetLocation());
 	
-	if (Distance < PinchThreshold) return true;
+	//UE_LOG(LogTemp, Warning, TEXT("Pinch str %f"), Distance2);
+	
+	if (Distance1 < PinchThreshold || Distance2 < PinchThreshold) return true;
 	
 	return false;
 }

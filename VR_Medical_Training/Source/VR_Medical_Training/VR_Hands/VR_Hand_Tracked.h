@@ -19,6 +19,13 @@ struct FTipBinding
 	TObjectPtr<USphereComponent> Collider;
 };
 
+UENUM(BlueprintType)
+enum class EGrabMode : uint8
+{
+	Realistic,
+	StickToHand	
+};
+
 UCLASS()
 class VR_MEDICAL_TRAINING_API AVR_Hand_Tracked : public AVR_Hand
 {
@@ -42,12 +49,15 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="VR_Hands|Tracking")
-	float PinchThreshold = 1; 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="VR_Hands|Interaction")
+	float PinchThreshold = 2; 
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Physics")
-	float FingerTipColliderRadius = 1;	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Interaction")
+	float FingerTipColliderRadius = 1;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Interaction")
+	EGrabMode GrabMode = EGrabMode::StickToHand;
+		
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Visual")
 	TObjectPtr<UPoseableMeshComponent> HandMesh;
 	
@@ -99,6 +109,7 @@ private:
 	void DropItem();
 	
 	bool IsPinched();
+	bool ShouldDropItem();
 	
 	
 	TArray<FTipBinding> FingerTipBindings;

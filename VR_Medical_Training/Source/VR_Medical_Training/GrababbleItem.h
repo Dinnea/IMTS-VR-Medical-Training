@@ -4,6 +4,8 @@
 #include "GameFramework/Actor.h"
 #include "GrababbleItem.generated.h"
 
+class ASpawnZone;
+
 UCLASS()
 class VR_MEDICAL_TRAINING_API AGrababbleItem : public AActor
 {
@@ -13,6 +15,9 @@ public:
 	AGrababbleItem();
 	void Grab(USceneComponent* Source, FName SocketName);
 	void Drop();
+	
+	UPROPERTY(BlueprintReadWrite)
+	bool OnSpawn = false;
 
 protected:
 	virtual void BeginPlay() override;
@@ -22,6 +27,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UStaticMeshComponent> Mesh;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<ASpawnZone> SpawnZone;
 
 public:	
 	virtual void Tick(float DeltaTime) override;

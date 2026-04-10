@@ -14,8 +14,8 @@ void AGrababbleItem::Grab(USceneComponent* Source, const FName SocketName)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Grabbing..."));
 	
-	Mesh->AttachToComponent(Source, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
 	Mesh->SetSimulatePhysics(false);
+	Mesh->AttachToComponent(Source, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
 }
 
 void AGrababbleItem::Drop()

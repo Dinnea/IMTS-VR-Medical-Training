@@ -53,8 +53,7 @@ TObjectPtr<AVR_Hand> AVR_CharacterPawn::SpawnHand(UWorld* World, const TSubclass
 	if (!HandClass)
 	{
 		UE_LOG(LogTemp, Warning,
-			   TEXT("[VR] Failed to spawn Hand from class '%s'. Check spawn collision, abstract class, or missing BP compile."),
-			   *HandClass->GetName());
+			   TEXT("[VR] Failed to spawn Hand from class. Check spawn collision, abstract class, or missing BP compile."));
 		return nullptr;
 	}
 	TObjectPtr<AVR_Hand> NewHand = World->SpawnActor<AVR_Hand>(HandClass);

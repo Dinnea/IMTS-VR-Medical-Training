@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "HeadMountedDisplayTypes.h"
 #include "VR_Hand.h"
+#include "Components/PoseableMeshComponent.h"
 #include "VR_Medical_Training/Gestures.h"
 #include "VR_Medical_Training/JointData.h"
 #include "VR_Hand_Tracked.generated.h"
@@ -39,6 +40,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void PostLoad() override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	
+	TObjectPtr<UPoseableMeshComponent> GetHandMesh(){return HandMesh;}
 	
 	UFUNCTION()
 	TArray<FName> GetBonePool() {return BonePool;}

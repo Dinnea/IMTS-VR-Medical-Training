@@ -4,7 +4,9 @@
 #include "GameFramework/Actor.h"
 #include "GrababbleItem.generated.h"
 
+class UBoxComponent;
 class ASpawnZone;
+class AVR_Hand_Tracked;
 
 UCLASS()
 class VR_MEDICAL_TRAINING_API AGrababbleItem : public AActor
@@ -13,8 +15,13 @@ class VR_MEDICAL_TRAINING_API AGrababbleItem : public AActor
 	
 public:	
 	AGrababbleItem();
-	void Grab(USceneComponent* Source, FName SocketName);
+	virtual void OnConstruction(const FTransform& Transform) override;
+	
+	void Grab(AVR_Hand_Tracked* Hand, FName SocketName);
 	void Drop();
+	
+	UFUNCTION(BlueprintCallable)
+	void OnOverlapBegin(const AActor* OtherActor) const;
 	
 	UPROPERTY(BlueprintReadWrite)
 	bool OnSpawn = false;
@@ -27,6 +34,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UStaticMeshComponent> Mesh;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UBoxComponent> Collider;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<ASpawnZone> SpawnZone;

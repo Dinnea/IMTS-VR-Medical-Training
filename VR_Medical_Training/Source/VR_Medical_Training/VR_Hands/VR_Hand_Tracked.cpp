@@ -315,7 +315,7 @@ void AVR_Hand_Tracked::GrabItem()
 		UE_LOG(LogTemp, Warning, TEXT("Valid actor"));
 		const FName SocketName = "Socket_PinchHold";
 
-		GrabbedActor->Grab(HandMesh, SocketName);
+		GrabbedActor->Grab(this, SocketName);
 
 		Grabbed = GrabbedActor;
 	}

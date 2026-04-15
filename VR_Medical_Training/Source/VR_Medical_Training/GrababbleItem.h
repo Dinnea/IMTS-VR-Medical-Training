@@ -18,13 +18,16 @@ public:
 	virtual void OnConstruction(const FTransform& Transform) override;
 	
 	void Grab(AVR_Hand_Tracked* Hand, FName SocketName);
-	void Drop();
+	void Drop() const;
 	
 	UFUNCTION(BlueprintCallable)
-	void OnOverlapBegin(const AActor* OtherActor) const;
+	void OnOverlapBegin(const AActor* OtherActor, const UPrimitiveComponent* OtherComp);
+	
+	UFUNCTION(BlueprintCallable)
+	void OnOverlapEnd(const AActor* OtherActor, const UPrimitiveComponent* OtherComp);
 	
 	UPROPERTY(BlueprintReadWrite)
-	bool OnSpawn = false;
+	bool OnSpawn;
 
 protected:
 	virtual void BeginPlay() override;
@@ -34,9 +37,6 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UStaticMeshComponent> Mesh;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<UBoxComponent> Collider;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<ASpawnZone> SpawnZone;

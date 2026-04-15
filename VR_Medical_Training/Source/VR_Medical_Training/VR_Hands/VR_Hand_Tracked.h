@@ -119,7 +119,7 @@ private:
 	
 	UPROPERTY() TObjectPtr<USceneComponent> ColliderParent;
 	
-	UPROPERTY()	TObjectPtr<USphereComponent> ThumbTipCollider;
+	UPROPERTY(VisibleAnywhere)	TObjectPtr<USphereComponent> ThumbTipCollider;
 	UPROPERTY()	TObjectPtr<USphereComponent> IndexTipCollider;
 	UPROPERTY()	TObjectPtr<USphereComponent> MiddleTipCollider;
 	UPROPERTY()	TObjectPtr<USphereComponent> RingTipCollider;

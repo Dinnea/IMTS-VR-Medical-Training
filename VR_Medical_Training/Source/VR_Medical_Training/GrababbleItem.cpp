@@ -1,4 +1,6 @@
 #include "GrababbleItem.h"
+
+#include "SpawnZone.h"
 #include "Components/BoxComponent.h"
 #include "VR_Hands/VR_Hand_Tracked.h"
 
@@ -7,12 +9,8 @@ AGrababbleItem::AGrababbleItem()
 	PrimaryActorTick.bCanEverTick = true;
 	
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
-	RootComponent = Mesh;
-	
-	Collider = CreateDefaultSubobject<UBoxComponent>("Collider");
-	Collider->SetupAttachment(Mesh);
-	
 	Mesh->SetEnableGravity(true);
+	RootComponent = Mesh;
 }
 
 void AGrababbleItem::Grab(AVR_Hand_Tracked* Hand, const FName SocketName)
@@ -20,31 +18,37 @@ void AGrababbleItem::Grab(AVR_Hand_Tracked* Hand, const FName SocketName)
 	UE_LOG(LogTemp, Warning, TEXT("Grabbing..."));
 	
 	Mesh->SetSimulatePhysics(false);
-	Mesh->AttachToComponent(Hand->GetHandMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
-	Mesh->SetCollisionProfileName("Trigger");
-	this->UpdateOverlaps();
+	this->AttachToComponent(Hand->GetHandMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
 }
 
-void AGrababbleItem::Drop()
+void AGrababbleItem::Drop() const
 {
 	UE_LOG(LogTemp, Warning, TEXT("Dropping..."));
 	
 	Mesh->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
 	Mesh->SetSimulatePhysics(true);
-	Mesh->SetCollisionProfileName("Physics Object");
-	this->UpdateOverlaps();
 }
 
-void AGrababbleItem::OnOverlapBegin(const AActor* OtherActor) const
+void AGrababbleItem::OnOverlapBegin(const AActor* OtherActor, const UPrimitiveComponent* OtherComp)
 {
-	UE_LOG(LogTemp, Warning, TEXT("OVERLAP unchecked %s"), *OtherActor->GetName());
-	if (!OtherActor || OtherActor == this)
-		return;
-
-	if (OtherActor == GetAttachParentActor())
+	//UE_LOG(LogTemp, Warning, TEXT("OVERLAP unchecked %s"), *OtherActor->GetName());
+	if (!OtherActor || OtherActor == this || OtherActor == GetAttachParentActor())
 		return;
 	
-	UE_LOG(LogTemp, Warning, TEXT("OVERLAP %s"), *OtherActor->GetName());
+	UE_LOG(LogTemp, Warning, TEXT("OVERLAP %s"), *OtherComp->GetName());
+	
+	if (auto* Spawn = Cast<ASpawnZone> (OtherActor))
+		OnSpawn = true;
+		//OnSpawn = Spawn == SpawnZone;
+}
+
+void AGrababbleItem::OnOverlapEnd(const AActor* OtherActor, const UPrimitiveComponent* OtherComp)
+{
+	if (!OtherActor || OtherActor == this || OtherActor == GetAttachParentActor())
+		return;
+	
+	if (auto* Spawn = Cast<ASpawnZone> (OtherActor))
+		OnSpawn = false;
 }
 
 void AGrababbleItem::BeginPlay()
@@ -55,16 +59,12 @@ void AGrababbleItem::BeginPlay()
 void AGrababbleItem::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	
-	FVector MeshOrigin = FVector(0.0f, 0.0f, 0.0f);
-	FVector BoxSize = FVector(0.0f, 0.0f, 0.0f);
-	
-	Mesh->GetLocalBounds(MeshOrigin, BoxSize);
-	Collider->SetBoxExtent(BoxSize);
 }
 
 void AGrababbleItem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	Mesh->UpdateOverlaps();
 }
 

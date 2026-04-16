@@ -12,7 +12,7 @@ struct FPoseTransition;
 class UPoseableMeshComponent;
 class UHandPoseRecognizer;
 class UHandGestureRecognizer;
-class AGrababbleItem;
+class AGrabbableItem;
 
 struct FTipBinding
 {
@@ -35,6 +35,8 @@ class VR_MEDICAL_TRAINING_API AVR_Hand_Tracked : public AVR_Hand
 public:
 	void SetupComponents();
 	void SetupColliders();
+	UFUNCTION(BlueprintCallable)
+	void SwitchGrabMode();
 	AVR_Hand_Tracked();
 	void InitializeJointData();
 	virtual void Tick(float DeltaTime) override;
@@ -132,7 +134,7 @@ private:
 	TArray<FName> BonePool;
 	
 	UPROPERTY()
-	TObjectPtr<AGrababbleItem> Grabbed = nullptr;
+	TObjectPtr<AGrabbableItem> Grabbed = nullptr;
 	
 	FXRHandTrackingState TrackedHandData;
 	int JointCount = 26;

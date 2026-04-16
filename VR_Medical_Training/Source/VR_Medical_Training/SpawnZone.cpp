@@ -1,27 +1,25 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "SpawnZone.h"
 
-// Sets default values
+#include "GrabbableItem.h"
+
 ASpawnZone::ASpawnZone()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+	
+	Zone = CreateDefaultSubobject<UStaticMeshComponent>("Zone");
+	RootComponent = Zone;
 }
 
-// Called when the game starts or when spawned
 void ASpawnZone::BeginPlay()
 {
 	Super::BeginPlay();
+
+	AGrabbableItem* Spawned = GetWorld()->SpawnActor<AGrabbableItem>(ToSpawn, GetActorLocation(), GetActorRotation());
 	
+	Spawned->OnSpawn(this);
 }
 
-// Called every frame
 void ASpawnZone::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
-

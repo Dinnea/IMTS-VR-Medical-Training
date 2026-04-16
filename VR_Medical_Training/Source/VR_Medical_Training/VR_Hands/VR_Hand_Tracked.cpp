@@ -3,7 +3,7 @@
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Components/PoseableMeshComponent.h"
 #include "Components/SphereComponent.h"
-#include "VR_Medical_Training/GrababbleItem.h"
+#include "VR_Medical_Training/GrabbableItem.h"
 
 AVR_Hand_Tracked::AVR_Hand_Tracked()
 {
@@ -73,8 +73,8 @@ void AVR_Hand_Tracked::Tick(float DeltaTime)
 	if (IsPinched()) GrabItem();
 	else if (ShouldDropItem()) DropItem();
 	
-	if (Grabbed && Grabbed->OnSpawn)
-			UE_LOG(LogTemp, Warning, TEXT("OnSpawn true"));
+	if (Grabbed && Grabbed->IsInSpawn)
+			UE_LOG(LogTemp, Warning, TEXT("IsInSpawn true"));
 }
 
 bool AVR_Hand_Tracked::ShouldDropItem()
@@ -86,7 +86,7 @@ bool AVR_Hand_Tracked::ShouldDropItem()
 		
 	case EGrabMode::StickToHand:
 		if (Grabbed)
-			return !IsPinched() && Grabbed->OnSpawn;
+			return !IsPinched() && Grabbed->IsInSpawn;
 		break;
 	}
 	
@@ -127,6 +127,11 @@ void AVR_Hand_Tracked::SetupColliders()
 		Collider->SetupAttachment(ColliderParent);
 		Collider->SetSphereRadius(FingerTipColliderRadius);
 	}
+}
+
+void AVR_Hand_Tracked::SwitchGrabMode()
+{
+	GrabMode = GrabMode == EGrabMode::StickToHand ? EGrabMode::Realistic : EGrabMode::StickToHand;
 }
 
 void AVR_Hand_Tracked::RegenerateJointBoneMaps()
@@ -310,7 +315,7 @@ void AVR_Hand_Tracked::GrabItem()
 	{
 		if (!Actor || Actor == this) continue;
 		
-		auto* GrabbedActor = Cast<AGrababbleItem>(Actor);
+		auto* GrabbedActor = Cast<AGrabbableItem>(Actor);
 		if (!GrabbedActor) continue;
 		UE_LOG(LogTemp, Warning, TEXT("Valid actor"));
 		const FName SocketName = "Socket_PinchHold";

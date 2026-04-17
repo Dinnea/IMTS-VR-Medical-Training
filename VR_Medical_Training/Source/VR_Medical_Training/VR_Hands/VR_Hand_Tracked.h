@@ -61,7 +61,7 @@ protected:
 	float FingerTipColliderRadius = 1;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Interaction")
-	EGrabMode GrabMode = EGrabMode::StickToHand;
+	EGrabMode GrabMode = EGrabMode::Realistic;
 		
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Visual")
 	TObjectPtr<UPoseableMeshComponent> HandMesh;

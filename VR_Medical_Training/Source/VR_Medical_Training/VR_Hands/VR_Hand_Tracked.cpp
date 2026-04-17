@@ -318,7 +318,7 @@ void AVR_Hand_Tracked::GrabItem()
 		auto* GrabbedActor = Cast<AGrabbableItem>(Actor);
 		if (!GrabbedActor) continue;
 		UE_LOG(LogTemp, Warning, TEXT("Valid actor"));
-		const FName SocketName = "Socket_PinchHold";
+		const FName SocketName = "Scissors_test";
 
 		GrabbedActor->Grab(this, SocketName);
 

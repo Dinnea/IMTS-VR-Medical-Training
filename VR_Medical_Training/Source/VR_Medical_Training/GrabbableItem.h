@@ -38,6 +38,9 @@ public:
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex);
 	
+	UPROPERTY(EditDefaultsOnly)
+	FName ObjectName;
+	
 	bool IsInSpawn;
 
 protected:

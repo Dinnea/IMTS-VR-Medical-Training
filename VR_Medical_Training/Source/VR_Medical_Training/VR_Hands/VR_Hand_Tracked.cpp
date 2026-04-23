@@ -4,6 +4,8 @@
 #include "Components/PoseableMeshComponent.h"
 #include "Components/SphereComponent.h"
 #include "VR_Medical_Training/GrabbableItem.h"
+#include "VR_Medical_Training/GrabbableItem_Poseable.h"
+#include "VR_Medical_Training/GrabbableItem_Static.h"
 
 AVR_Hand_Tracked::AVR_Hand_Tracked()
 {
@@ -30,7 +32,7 @@ void AVR_Hand_Tracked::PostLoad()
 	
 	RegenerateJointBoneMaps();
 }
-
+#if WITH_EDITOR
 void AVR_Hand_Tracked::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -51,6 +53,8 @@ void AVR_Hand_Tracked::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 			Collider->SetSphereRadius(FingerTipColliderRadius);
 	}
 }
+#endif
+
 
 void AVR_Hand_Tracked::Tick(float DeltaTime)
 {
@@ -317,8 +321,14 @@ void AVR_Hand_Tracked::GrabItem()
 		
 		auto* GrabbedActor = Cast<AGrabbableItem>(Actor);
 		if (!GrabbedActor) continue;
-		UE_LOG(LogTemp, Warning, TEXT("Valid actor"));
-		const FName SocketName = "Scissors_test";
+		
+		FName SocketName = "Socket_PinchHold";
+		
+		if (GrabbedActor->ObjectName == "Scissors")
+		{
+			GrabMode = EGrabMode::StickToHand;
+			SocketName = "Socket_Scissors";
+		}
 
 		GrabbedActor->Grab(this, SocketName);
 
@@ -329,7 +339,11 @@ void AVR_Hand_Tracked::GrabItem()
 void AVR_Hand_Tracked::DropItem()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Drop item"));
+	
 	Grabbed->Drop();
+	
+	if (Grabbed->ObjectName == "Scissors")
+			GrabMode = EGrabMode::Realistic;
 		
 	Grabbed = nullptr;
 }
@@ -341,6 +355,9 @@ bool AVR_Hand_Tracked::IsPinched()
 	const FTransform Middle = JointTransforms[static_cast<int>(EHandKeypoint::MiddleTip)];
 
 	const float	Distance1 = FVector::Dist(Thumb.GetLocation(), Index.GetLocation());
+	
+	PinchStrength = Distance1;
+	
 	const float Distance2 = FVector::Dist(Thumb.GetLocation(), Middle.GetLocation());
 	
 	//UE_LOG(LogTemp, Warning, TEXT("Pinch str %f"), Distance2);

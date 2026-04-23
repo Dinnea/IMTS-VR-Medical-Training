@@ -41,7 +41,11 @@ public:
 	void InitializeJointData();
 	virtual void Tick(float DeltaTime) override;
 	virtual void PostLoad() override;
+	
+#if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	
 	
 	TObjectPtr<UPoseableMeshComponent> GetHandMesh(){return HandMesh;}
 	
@@ -50,6 +54,10 @@ public:
 	
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnPoseTransition, const FPoseTransition&);
 	FOnPoseTransition OnPoseTransition;
+
+	UPROPERTY(BlueprintReadOnly)
+	float PinchStrength;
+	
 
 protected:
 	virtual void BeginPlay() override;

@@ -3,5 +3,5 @@
 
 AGrabbableItem_Poseable::AGrabbableItem_Poseable()
 {
-	Mesh = CreateMeshComponent<UPoseableMeshComponent>("Mesh");
+	Mesh = CreateMeshComponent<USkeletalMeshComponent>("Mesh");
 }

@@ -52,7 +52,7 @@ void AGrabbableItem::Drop()
 	
 	IsHeld = false;
 	//Origin->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
-	this->DetachRootComponentFromParent(true);
+	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	Collider->SetSimulatePhysics(true);
 	Collider->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 }

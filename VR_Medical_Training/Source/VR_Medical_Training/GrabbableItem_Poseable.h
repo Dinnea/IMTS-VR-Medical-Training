@@ -18,5 +18,5 @@ public:
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<UPoseableMeshComponent> Mesh;
+	TObjectPtr<USkeletalMeshComponent> Mesh;
 };

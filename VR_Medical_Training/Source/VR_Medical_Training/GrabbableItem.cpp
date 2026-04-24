@@ -37,21 +37,17 @@ void AGrabbableItem::OnConstruction(const FTransform& Transform)
 
 void AGrabbableItem::Grab(AVR_Hand_Tracked* Hand, const FName SocketName)
 {
-	if (IsHeld)
+	if (OwningHand)
 		return;
 	
-	UE_LOG(LogTemp, Warning, TEXT("Grabbing..."));
-	IsHeld = true;
+	OwningHand = Hand;
 	Collider->SetSimulatePhysics(false);
 	this->AttachToComponent(Hand->GetHandMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
 }
 
 void AGrabbableItem::Drop()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Dropping..."));
-	
-	IsHeld = false;
-	//Origin->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+	OwningHand = nullptr;
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	Collider->SetSimulatePhysics(true);
 	Collider->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);

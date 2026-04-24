@@ -41,6 +41,9 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	FName ObjectName;
 	
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<AVR_Hand_Tracked> OwningHand;
+	
 	bool IsInSpawn;
 
 protected:

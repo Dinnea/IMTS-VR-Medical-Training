@@ -4,8 +4,6 @@
 #include "Components/PoseableMeshComponent.h"
 #include "Components/SphereComponent.h"
 #include "VR_Medical_Training/GrabbableItem.h"
-#include "VR_Medical_Training/GrabbableItem_Poseable.h"
-#include "VR_Medical_Training/GrabbableItem_Static.h"
 
 AVR_Hand_Tracked::AVR_Hand_Tracked()
 {

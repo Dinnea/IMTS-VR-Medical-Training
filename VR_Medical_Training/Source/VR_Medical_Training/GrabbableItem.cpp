@@ -1,5 +1,6 @@
 #include "GrabbableItem.h"
 #include "SpawnZone.h"
+#include "Components/AudioComponent.h"
 #include "VR_Hands/VR_Hand_Tracked.h"
 
 AGrabbableItem::AGrabbableItem()
@@ -10,6 +11,9 @@ AGrabbableItem::AGrabbableItem()
 	SetRootComponent(Collider);
 	Collider->SetSimulatePhysics(true);
 	Collider->SetEnableGravity(true);
+	
+	DropSFX = CreateDefaultSubobject<UAudioComponent>("DropSFX");
+	HoverHighlight = CreateDefaultSubobject<UNiagaraComponent>("HoverHighlight");
 }
 
 void AGrabbableItem::OnConstruction(const FTransform& Transform)
@@ -80,12 +84,20 @@ void AGrabbableItem::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* O
 		IsInSpawn = false;
 }
 
+
+void AGrabbableItem::OnComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	DropSFX ->Play();
+}
+
 void AGrabbableItem::BeginPlay()
 {
 	Super::BeginPlay();
 	
 	Collider->OnComponentBeginOverlap.AddDynamic(this, &AGrabbableItem::OnOverlapBegin);
 	Collider->OnComponentEndOverlap.AddDynamic(this, &AGrabbableItem::OnOverlapEnd);
+	Collider->OnComponentHit.AddDynamic(this, &AGrabbableItem::OnComponentHit);
 }
 
 void AGrabbableItem::Tick(float DeltaTime)

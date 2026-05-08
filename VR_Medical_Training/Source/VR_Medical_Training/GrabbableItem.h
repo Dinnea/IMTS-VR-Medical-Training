@@ -19,7 +19,7 @@ public:
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void Tick(float DeltaTime) override;
 	
-	void Grab(AVR_Hand_Tracked* Hand, FName SocketName);
+	virtual void Grab(AVR_Hand_Tracked* Hand);
 	void Drop();
 	void OnSpawn(ASpawnZone* InSpawnZone);
 	

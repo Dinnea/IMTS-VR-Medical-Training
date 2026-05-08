@@ -4,6 +4,7 @@
 #include "Components/PoseableMeshComponent.h"
 #include "Components/SphereComponent.h"
 #include "VR_Medical_Training/GrabbableItem.h"
+#include "VR_Medical_Training/GrabbableScissors.h"
 
 AVR_Hand_Tracked::AVR_Hand_Tracked()
 {
@@ -322,13 +323,15 @@ void AVR_Hand_Tracked::GrabItem()
 		
 		FName SocketName = "Socket_PinchHold";
 		
-		if (GrabbedActor->ObjectName == "Scissors")
+		if (auto* Scissors = Cast<AGrabbableScissors>(GrabbedActor))
 		{
 			GrabMode = EGrabMode::StickToHand;
-			SocketName = "Socket_Scissors";
 		}
-
-		GrabbedActor->Grab(this, SocketName);
+		
+		else
+			GrabbedActor->AttachToComponent(HandMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
+		
+		GrabbedActor->Grab(this);
 
 		Grabbed = GrabbedActor;
 	}
@@ -354,7 +357,10 @@ bool AVR_Hand_Tracked::IsPinched()
 
 	const float	Distance1 = FVector::Dist(Thumb.GetLocation(), Index.GetLocation());
 	
-	PinchStrength = Distance1;
+	const FTransform IndexDistal = JointTransforms[static_cast<int>(EHandKeypoint::IndexDistal)];
+	const FTransform ThumbDistal = JointTransforms[static_cast<int>(EHandKeypoint::ThumbDistal)];
+	
+	PinchStrength = FVector::Dist (IndexDistal.GetLocation(), ThumbDistal.GetLocation());
 	
 	const float Distance2 = FVector::Dist(Thumb.GetLocation(), Middle.GetLocation());
 	

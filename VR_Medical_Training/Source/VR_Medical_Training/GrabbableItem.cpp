@@ -39,14 +39,13 @@ void AGrabbableItem::OnConstruction(const FTransform& Transform)
 	Collider->SetBoxExtent(BoxSize);
 }
 
-void AGrabbableItem::Grab(AVR_Hand_Tracked* Hand, const FName SocketName)
+void AGrabbableItem::Grab(AVR_Hand_Tracked* Hand)
 {
 	if (OwningHand)
 		return;
 	
 	OwningHand = Hand;
 	Collider->SetSimulatePhysics(false);
-	this->AttachToComponent(Hand->GetHandMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
 }
 
 void AGrabbableItem::Drop()

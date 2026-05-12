@@ -66,10 +66,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UNiagaraComponent> HoverHighlight;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<USceneComponent> Offset;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UBoxComponent> Collider;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UMeshComponent> MeshComp;
 	
 template <typename TMeshComponent>

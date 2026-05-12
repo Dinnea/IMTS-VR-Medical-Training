@@ -7,13 +7,20 @@ AGrabbableItem::AGrabbableItem()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	
+	// Origin = CreateDefaultSubobject<USceneComponent>("Origin");
+	// SetRootComponent(Origin);
+	
+	
 	Collider = CreateDefaultSubobject<UBoxComponent>("Collider");	
-	SetRootComponent(Collider);
 	Collider->SetSimulatePhysics(true);
 	Collider->SetEnableGravity(true);
 	
+	SetRootComponent(Collider);	
 	DropSFX = CreateDefaultSubobject<UAudioComponent>("DropSFX");
 	HoverHighlight = CreateDefaultSubobject<UNiagaraComponent>("HoverHighlight");
+	
+	//HoverHighlight->SetupAttachment(Origin);
+	//DropSFX->SetupAttachment(Origin);
 }
 
 void AGrabbableItem::OnConstruction(const FTransform& Transform)
@@ -32,7 +39,7 @@ void AGrabbableItem::OnConstruction(const FTransform& Transform)
 		if (const auto* SkinnedAsset = SkinnedMeshComponent->GetSkinnedAsset())
 		{
 			const FBoxSphereBounds Bounds = SkinnedAsset->GetBounds();
-			BoxSize = Bounds.BoxExtent;
+			BoxSize = Bounds.BoxExtent*1.1f;
 		}
 	}
 	

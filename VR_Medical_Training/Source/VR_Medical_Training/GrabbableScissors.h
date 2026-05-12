@@ -15,5 +15,9 @@ class VR_MEDICAL_TRAINING_API AGrabbableScissors : public AGrabbableItem_Poseabl
 	GENERATED_BODY()
 	
 public:
+	AGrabbableScissors();
 	virtual void Tick( float DeltaTime ) override;
+	
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USceneComponent> Test;
 };

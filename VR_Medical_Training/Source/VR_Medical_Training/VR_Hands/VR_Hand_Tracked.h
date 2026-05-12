@@ -42,6 +42,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void PostLoad() override;
 	
+	FTransform GetJointTransform(EJoint Joint);
+	
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif

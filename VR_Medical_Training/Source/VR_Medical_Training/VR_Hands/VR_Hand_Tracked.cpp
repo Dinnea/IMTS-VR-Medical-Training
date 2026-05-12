@@ -31,6 +31,11 @@ void AVR_Hand_Tracked::PostLoad()
 	
 	RegenerateJointBoneMaps();
 }
+
+FTransform AVR_Hand_Tracked::GetJointTransform(EJoint Joint)
+{
+	return JointTransforms[static_cast<int>(Joint)];
+}
 #if WITH_EDITOR
 void AVR_Hand_Tracked::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {

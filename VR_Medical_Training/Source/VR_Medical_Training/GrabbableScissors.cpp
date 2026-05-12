@@ -6,6 +6,13 @@
 #include "SkeletalMeshAttributes.h"
 #include "VR_Hands/VR_Hand_Tracked.h"
 
+AGrabbableScissors::AGrabbableScissors()
+{
+	// Test = CreateDefaultSubobject<USceneComponent>("Test");
+	// Test->SetupAttachment(Offset);
+	// Collider->SetupAttachment(Test);
+}
+
 void AGrabbableScissors::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -13,4 +20,11 @@ void AGrabbableScissors::Tick(float DeltaTime)
 		return;
 	FVector Location =	OwningHand->GetHandMesh()->GetBoneLocationByName("XRHand_IndexDistal", EBoneSpaces::WorldSpace);
 	this->SetActorLocation(Location);
+	
+	double Pitch = 0;
+	double Yaw = 0;
+	double Roll = 0;
+	
+	FRotator WristRotator = OwningHand->GetJointTransform(EJoint::Wrist).GetRotation().Rotator();
+	this->SetActorRotation(WristRotator);
 }

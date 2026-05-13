@@ -7,7 +7,7 @@
 
 class UPoseableMeshComponent;
 
-UCLASS()
+UCLASS(Blueprintable, BlueprintType)
 class VR_MEDICAL_TRAINING_API AGrabbableItem_Poseable : public AGrabbableItem
 {
 	GENERATED_BODY()

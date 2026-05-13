@@ -16,6 +16,7 @@ AGrabbableItem::AGrabbableItem()
 	Collider->SetEnableGravity(true);
 	
 	SetRootComponent(Collider);	
+	
 	DropSFX = CreateDefaultSubobject<UAudioComponent>("DropSFX");
 	HoverHighlight = CreateDefaultSubobject<UNiagaraComponent>("HoverHighlight");
 	
@@ -26,23 +27,24 @@ AGrabbableItem::AGrabbableItem()
 void AGrabbableItem::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	
-	FVector MeshOrigin = FVector(0.0f, 0.0f, 0.0f);
-	FVector BoxSize = FVector(0.0f, 0.0f, 0.0f);
-	
-	if (const auto* StaticMeshComponent = Cast<UStaticMeshComponent>(MeshComp))
-		StaticMeshComponent->GetLocalBounds(MeshOrigin, BoxSize);
-	
-	else if (const auto* SkinnedMeshComponent = Cast<USkinnedMeshComponent>(MeshComp))
-	{
 
+	FBoxSphereBounds Bounds;
+	// if (const auto* StaticMeshComponent = Cast<UStaticMeshComponent>(MeshComp))
+	// {
+	// 	if (const auto StaticMesh = StaticMeshComponent->GetStaticMesh())
+	// 		Bounds = StaticMesh->GetBounds();
+	// }
+	//
+	// else 
+	if (const auto* SkinnedMeshComponent = Cast<USkinnedMeshComponent>(MeshComp))
+	{
 		if (const auto* SkinnedAsset = SkinnedMeshComponent->GetSkinnedAsset())
-		{
-			const FBoxSphereBounds Bounds = SkinnedAsset->GetBounds();
-			BoxSize = Bounds.BoxExtent*1.1f;
-		}
+				Bounds = SkinnedAsset->GetBounds();
 	}
+	else return;
 	
+	UE_LOG(LogTemp, Warning, TEXT("pinch hold %s"), *Bounds.BoxExtent.ToString());
+	FVector BoxSize = Bounds.BoxExtent * 1.1f;
 	Collider->SetBoxExtent(BoxSize);
 }
 
@@ -53,6 +55,7 @@ void AGrabbableItem::Grab(AVR_Hand_Tracked* Hand)
 	
 	OwningHand = Hand;
 	Collider->SetSimulatePhysics(false);
+	SetActorRelativeLocation(MeshOffset);
 }
 
 void AGrabbableItem::Drop()
@@ -100,6 +103,9 @@ void AGrabbableItem::OnComponentHit(UPrimitiveComponent* HitComponent, AActor* O
 void AGrabbableItem::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	if (MeshComp)
+	MeshOffset = MeshComp->GetRelativeLocation();
 	
 	Collider->OnComponentBeginOverlap.AddDynamic(this, &AGrabbableItem::OnOverlapBegin);
 	Collider->OnComponentEndOverlap.AddDynamic(this, &AGrabbableItem::OnOverlapEnd);

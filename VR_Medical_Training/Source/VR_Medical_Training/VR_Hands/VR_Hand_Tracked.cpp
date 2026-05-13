@@ -326,6 +326,9 @@ void AVR_Hand_Tracked::GrabItem()
 		auto* GrabbedActor = Cast<AGrabbableItem>(Actor);
 		if (!GrabbedActor) continue;
 		
+		GrabbedActor->Grab(this);
+		Grabbed = GrabbedActor;
+		
 		FName SocketName = "Socket_PinchHold";
 		
 		if (auto* Scissors = Cast<AGrabbableScissors>(GrabbedActor))
@@ -334,11 +337,10 @@ void AVR_Hand_Tracked::GrabItem()
 		}
 		
 		else
+		{
 			GrabbedActor->AttachToComponent(HandMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
-		
-		GrabbedActor->Grab(this);
-
-		Grabbed = GrabbedActor;
+			UE_LOG(LogTemp, Warning, TEXT("pinch hold"));
+		}
 	}
 }
 

@@ -9,7 +9,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(Blueprintable, BlueprintType)
 class VR_MEDICAL_TRAINING_API AGrabbableScissors : public AGrabbableItem_Poseable
 {
 	GENERATED_BODY()

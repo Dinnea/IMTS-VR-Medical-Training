@@ -19,12 +19,17 @@ void AGrabbableScissors::Tick(float DeltaTime)
 	if (!OwningHand)
 		return;
 	FVector Location =	OwningHand->GetHandMesh()->GetBoneLocationByName("XRHand_IndexDistal", EBoneSpaces::WorldSpace);
-	this->SetActorLocation(Location);
+	
+	this->SetActorLocation(Location+MeshOffset);
 	
 	double Pitch = 0;
 	double Yaw = 0;
 	double Roll = 0;
-	
-	FRotator WristRotator = OwningHand->GetJointTransform(EJoint::Wrist).GetRotation().Rotator();
-	this->SetActorRotation(WristRotator);
+
+	const FRotator WristRotator = OwningHand->GetJointTransform(EJoint::Wrist).GetRotation().Rotator();
+	const FRotator PalmRotator = OwningHand->GetJointTransform(EJoint::Palm).GetRotation().Rotator();
+	Pitch = PalmRotator.Pitch + 180;
+	//Yaw = PalmRotator.Yaw;
+	FRotator TargetRotation = FRotator(Pitch, Yaw, Roll);
+	this->SetActorRotation(TargetRotation);
 }

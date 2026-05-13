@@ -9,7 +9,7 @@
 class ASpawnZone;
 class AVR_Hand_Tracked;
 
-UCLASS()
+UCLASS(Blueprintable, BlueprintType)
 class VR_MEDICAL_TRAINING_API AGrabbableItem : public AActor
 {
 	GENERATED_BODY()
@@ -75,6 +75,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UMeshComponent> MeshComp;
 	
+	FVector MeshOffset;
+	
 template <typename TMeshComponent>
 	TMeshComponent* CreateMeshComponent(const FName& Name)
 	{
@@ -90,5 +92,6 @@ template <typename TMeshComponent>
 private:
 	UPROPERTY()
 	TObjectPtr<ASpawnZone> SpawnZone;
+	
 	bool IsHeld;
 };

@@ -4,29 +4,85 @@
 #include "HeadMountedDisplayTypes.h"
 #include "VR_Hand.h"
 #include "Components/PoseableMeshComponent.h"
-#include "GameFramework/Actor.h"
+#include "VR_Medical_Training/Gestures.h"
 #include "VR_Medical_Training/JointData.h"
 #include "VR_Hand_Tracked.generated.h"
+
+struct FPoseTransition;
+class UPoseableMeshComponent;
+class UHandPoseRecognizer;
+class UHandGestureRecognizer;
+class AGrabbableItem;
+
+struct FTipBinding
+{
+	EJoint Joint;
+	TObjectPtr<USphereComponent> Collider;
+};
+
+UENUM(BlueprintType)
+enum class EGrabMode : uint8
+{
+	Realistic,
+	StickToHand	
+};
 
 UCLASS()
 class VR_MEDICAL_TRAINING_API AVR_Hand_Tracked : public AVR_Hand
 {
 	GENERATED_BODY()
 	
-public:	
+public:
+	void SetupComponents();
+	void SetupColliders();
+	UFUNCTION(BlueprintCallable)
+	void SwitchGrabMode();
 	AVR_Hand_Tracked();
 	void InitializeJointData();
 	virtual void Tick(float DeltaTime) override;
+	virtual void PostLoad() override;
+	
+	FTransform GetJointTransform(EJoint Joint);
+	
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
+	
+	
+	TObjectPtr<UPoseableMeshComponent> GetHandMesh(){return HandMesh;}
 	
 	UFUNCTION()
 	TArray<FName> GetBonePool() {return BonePool;}
+	
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnPoseTransition, const FPoseTransition&);
+	FOnPoseTransition OnPoseTransition;
+
+	UPROPERTY(BlueprintReadOnly, Category= "VR_Hands|Pose")
+	float ScissorPinchStrength;
+	
+	UPROPERTY(BlueprintReadOnly, Category="VR_Hand|Pose")
+	bool IsPinched;
+	
+	UPROPERTY(BlueprintReadOnly, Category="VR_Hand|Pose")
+	bool IsHandCurled;
+	
 
 protected:
 	virtual void BeginPlay() override;
-	virtual void PostLoad() override;
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "VR_Hands|Visual")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="VR_Hands|Interaction")
+	float PinchThreshold = 2; 
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="VR_Hands|Interaction")
+	float CurlThreshold = 60; 
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Interaction")
+	float FingerTipColliderRadius = 1;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Interaction")
+	EGrabMode GrabMode = EGrabMode::Realistic;
+		
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Visual")
 	TObjectPtr<UPoseableMeshComponent> HandMesh;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Visual")
@@ -73,13 +129,47 @@ private:
 	void DrawJointCoordsDebug();
 	void DrawJointNamesDebug();
 	void AnimateHand();
+	void GrabItem();
+	void DropItem();
 	
-	FXRHandTrackingState TrackedHandData;
-	int JointCount = 26;
-
+	void CalculateHandPoses();
+	
+	bool GetFingerCurl(const FTransform& Distal, const FTransform& Intermediate, const FTransform& Proximal);
+	bool ShouldDropItem();
+	
+	
+	TArray<FTipBinding> FingerTipBindings;
+	
+	UPROPERTY() TObjectPtr<USceneComponent> ColliderParent;
+	
+	UPROPERTY(VisibleAnywhere)	TObjectPtr<USphereComponent> ThumbTipCollider;
+	UPROPERTY()	TObjectPtr<USphereComponent> IndexTipCollider;
+	UPROPERTY()	TObjectPtr<USphereComponent> MiddleTipCollider;
+	UPROPERTY()	TObjectPtr<USphereComponent> RingTipCollider;
+	UPROPERTY()	TObjectPtr<USphereComponent> PinkieTipCollider;
+	
 	UPROPERTY()
-	USkinnedAsset* CachedMesh = nullptr;
+	TObjectPtr<USkinnedAsset> CachedMesh = nullptr;
 	
 	UPROPERTY()
 	TArray<FName> BonePool;
+	
+	UPROPERTY()
+	TObjectPtr<AGrabbableItem> Grabbed = nullptr;
+	
+	FXRHandTrackingState TrackedHandData;
+	int JointCount = 26;
+	
+	bool IsGrabbing;
+	
+	float GetAngleDegrees(FVector A, FVector B)
+	{
+		A.Normalize();
+		B.Normalize();
+
+		float Dot = FVector::DotProduct(A, B);
+		Dot = FMath::Clamp(Dot, -1.0f, 1.0f);
+
+		return FMath::RadiansToDegrees(FMath::Acos(Dot));
+	}
 };

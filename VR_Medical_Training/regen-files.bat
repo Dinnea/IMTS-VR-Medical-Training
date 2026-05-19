@@ -1,1 +1,0 @@
-"C:\Program Files\Epic Games\UE_5.7\Engine\Build\BatchFiles\GenerateProjectFiles.bat" -project="%cd%\VR_Medical_Training.uproject" -game

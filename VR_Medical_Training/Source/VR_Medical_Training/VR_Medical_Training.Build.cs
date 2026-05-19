@@ -6,11 +6,12 @@ public class VR_Medical_Training : ModuleRules
 {
 	public VR_Medical_Training(ReadOnlyTargetRules Target) : base(Target)
 	{
+		PrivateDependencyModuleNames.AddRange(new string[] { "Niagara" });
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "UMG", "XRBase", "OpenXRHandTracking" });
-
-		PrivateDependencyModuleNames.AddRange(new string[] {  });
+		PublicDependencyModuleNames.AddRange(new string[] 
+			{ "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", 
+				"UMG", "XRBase", "OpenXRHandTracking" });
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });

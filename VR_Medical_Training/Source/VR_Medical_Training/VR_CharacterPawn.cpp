@@ -3,13 +3,14 @@
 #include "IXRTrackingSystem.h"
 #include "VR_Hands/VR_Hand.h"
 #include "Camera/CameraComponent.h"
+#include "VR_Hands/VR_Hand_Tracked.h"
 
 AVR_CharacterPawn::AVR_CharacterPawn()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	
 	Origin = CreateDefaultSubobject<USceneComponent>("Origin");
-	Origin->SetupAttachment(GetMesh());
+	RootComponent = Origin;
 	
 	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
 	Camera->SetupAttachment(Origin);
@@ -52,8 +53,7 @@ TObjectPtr<AVR_Hand> AVR_CharacterPawn::SpawnHand(UWorld* World, const TSubclass
 	if (!HandClass)
 	{
 		UE_LOG(LogTemp, Warning,
-			   TEXT("[VR] Failed to spawn Hand from class '%s'. Check spawn collision, abstract class, or missing BP compile."),
-			   *HandClass->GetName());
+			   TEXT("[VR] Failed to spawn Hand from class. Check spawn collision, abstract class, or missing BP compile."));
 		return nullptr;
 	}
 	TObjectPtr<AVR_Hand> NewHand = World->SpawnActor<AVR_Hand>(HandClass);
@@ -84,9 +84,3 @@ void AVR_CharacterPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
-
-void AVR_CharacterPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-}
-

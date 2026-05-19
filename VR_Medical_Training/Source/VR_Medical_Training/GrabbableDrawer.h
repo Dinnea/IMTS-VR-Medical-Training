@@ -20,6 +20,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetMaxOffset(const float MaxOffset);
 	virtual void Drop() override;
+	
+	UPROPERTY(BlueprintReadOnly)
+	FVector TestLocation = FVector ::ZeroVector;
 protected:
 	virtual void BeginPlay() override;
 	
@@ -27,5 +30,7 @@ protected:
 private:
 	float ConstraintMin;
 	float ConstraintMax;
+	
+	FVector OriginalLocation;
 	
 };

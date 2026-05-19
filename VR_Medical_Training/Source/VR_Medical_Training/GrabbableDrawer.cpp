@@ -3,7 +3,6 @@
 
 #include "GrabbableDrawer.h"
 
-#include "Transform/TransformConstraintUtil.h"
 #include "VR_Hands/VR_Hand_Tracked.h"
 
 void AGrabbableDrawer::Tick(float DeltaSeconds)
@@ -21,17 +20,18 @@ void AGrabbableDrawer::Tick(float DeltaSeconds)
 	UE_LOG(LogTemp, Warning, TEXT("Distance: %f"), Distance);
 	
 	Distance = FMath::Clamp(Distance, ConstraintMin, ConstraintMax);
-
-	const FVector RelativeLocation = RootComponent -> GetRelativeLocation();
 	
-	SetActorLocation(FVector(ConstraintMin - Distance, RelativeLocation.Y, RelativeLocation.Z));
+	TestLocation = FVector(OriginalLocation.X - Distance, OriginalLocation.Y, OriginalLocation.Z);
 	
 }
 
 void AGrabbableDrawer::SetMaxOffset(const float MaxOffset)
 {
-	ConstraintMin = GetActorLocation().X;
+	OriginalLocation = GetActorLocation();
+	ConstraintMin = OriginalLocation.X;
 	ConstraintMax = ConstraintMin + MaxOffset;
+	
+	TestLocation = OriginalLocation;
 }
 
 void AGrabbableDrawer::Drop()

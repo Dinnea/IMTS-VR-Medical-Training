@@ -57,8 +57,14 @@ public:
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnPoseTransition, const FPoseTransition&);
 	FOnPoseTransition OnPoseTransition;
 
-	UPROPERTY(BlueprintReadOnly)
-	float PinchStrength;
+	UPROPERTY(BlueprintReadOnly, Category= "VR_Hands|Pose")
+	float ScissorPinchStrength;
+	
+	UPROPERTY(BlueprintReadOnly, Category="VR_Hand|Pose")
+	bool IsPinched;
+	
+	UPROPERTY(BlueprintReadOnly, Category="VR_Hand|Pose")
+	bool IsHandCurled;
 	
 
 protected:
@@ -66,6 +72,9 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="VR_Hands|Interaction")
 	float PinchThreshold = 2; 
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="VR_Hands|Interaction")
+	float CurlThreshold = 60; 
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Interaction")
 	float FingerTipColliderRadius = 1;
@@ -123,7 +132,9 @@ private:
 	void GrabItem();
 	void DropItem();
 	
-	bool IsPinched();
+	void CalculateHandPoses();
+	
+	bool GetFingerCurl(const FTransform& Distal, const FTransform& Intermediate, const FTransform& Proximal);
 	bool ShouldDropItem();
 	
 	
@@ -148,4 +159,17 @@ private:
 	
 	FXRHandTrackingState TrackedHandData;
 	int JointCount = 26;
+	
+	bool IsGrabbing;
+	
+	float GetAngleDegrees(FVector A, FVector B)
+	{
+		A.Normalize();
+		B.Normalize();
+
+		float Dot = FVector::DotProduct(A, B);
+		Dot = FMath::Clamp(Dot, -1.0f, 1.0f);
+
+		return FMath::RadiansToDegrees(FMath::Acos(Dot));
+	}
 };

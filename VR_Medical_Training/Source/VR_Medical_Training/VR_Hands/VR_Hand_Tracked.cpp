@@ -78,11 +78,22 @@ void AVR_Hand_Tracked::Tick(float DeltaTime)
 	if (bAnimateHand)
 		AnimateHand();
 	
-	if (IsPinched()) GrabItem();
+	if (IsGrabbing) GrabItem();
 	else if (ShouldDropItem()) DropItem();
 	
 	if (Grabbed && Grabbed->IsInSpawn)
 			UE_LOG(LogTemp, Warning, TEXT("IsInSpawn true"));
+	
+	CalculateHandPoses();
+	
+	if (IsGrabbing)  { UE_LOG(LogTemp, Warning, TEXT("IsGrabbing: true")); }
+	else UE_LOG(LogTemp, Warning, TEXT("IsGrabbing: false"));
+	
+	if (IsPinched)  { UE_LOG(LogTemp, Warning, TEXT("IsPinched: true")); }
+	else UE_LOG(LogTemp, Warning, TEXT("IsPinched: false"));
+	
+	if (IsHandCurled)  { UE_LOG(LogTemp, Warning, TEXT("IsHandCurled: true")); }
+	else UE_LOG(LogTemp, Warning, TEXT("IsHandCurled: false"));
 }
 
 bool AVR_Hand_Tracked::ShouldDropItem()
@@ -90,11 +101,11 @@ bool AVR_Hand_Tracked::ShouldDropItem()
 	switch (GrabMode)
 	{
 	case EGrabMode::Realistic:
-		return !IsPinched() && Grabbed != nullptr;
+		return !IsGrabbing && Grabbed != nullptr;
 		
 	case EGrabMode::StickToHand:
 		if (Grabbed)
-			return !IsPinched() && Grabbed->IsInSpawn;
+			return !IsGrabbing && Grabbed->IsInSpawn;
 		break;
 	}
 	
@@ -315,6 +326,8 @@ void AVR_Hand_Tracked::GrabItem()
 		return;
 	}
 	
+	UE_LOG(LogTemp, Warning, TEXT("GrabItem()"));
+	
 	TArray<AActor*> OverlappingActors;
 	IndexTipCollider -> GetOverlappingActors(OverlappingActors);
 	
@@ -356,27 +369,55 @@ void AVR_Hand_Tracked::DropItem()
 	Grabbed = nullptr;
 }
 
-bool AVR_Hand_Tracked::IsPinched()
+void AVR_Hand_Tracked::CalculateHandPoses()
 {
-	const FTransform Thumb =  JointTransforms[static_cast<int>(EHandKeypoint::ThumbTip)];
-	const FTransform Index = JointTransforms[static_cast<int>(EHandKeypoint::IndexTip)];
-	const FTransform Middle = JointTransforms[static_cast<int>(EHandKeypoint::MiddleTip)];
+	const FTransform ThumbTip =  JointTransforms[static_cast<int>(EHandKeypoint::ThumbTip)];
+	const FTransform IndexTip = JointTransforms[static_cast<int>(EHandKeypoint::IndexTip)];
+	const FTransform MiddleTip = JointTransforms[static_cast<int>(EHandKeypoint::MiddleTip)];
+	const FTransform RingTip = JointTransforms[static_cast<int>(EHandKeypoint::RingTip)];
 
-	const float	Distance1 = FVector::Dist(Thumb.GetLocation(), Index.GetLocation());
 	
-	const FTransform IndexDistal = JointTransforms[static_cast<int>(EHandKeypoint::IndexDistal)];
 	const FTransform ThumbDistal = JointTransforms[static_cast<int>(EHandKeypoint::ThumbDistal)];
+	const FTransform IndexDistal = JointTransforms[static_cast<int>(EHandKeypoint::IndexDistal)];
+	const FTransform MiddleDistal = JointTransforms[static_cast<int>(EHandKeypoint::MiddleDistal)];
+	const FTransform RingDistal = JointTransforms[static_cast<int>(EHandKeypoint::RingDistal)];
 	
-	PinchStrength = FVector::Dist (IndexDistal.GetLocation(), ThumbDistal.GetLocation());
+	const FTransform IndexIntermediate = JointTransforms[static_cast<int>(EHandKeypoint::IndexIntermediate)];
+	const FTransform MiddleIntermediate = JointTransforms[static_cast<int>(EHandKeypoint::MiddleIntermediate)];
+	const FTransform RingIntermediate = JointTransforms[static_cast<int>(EHandKeypoint::RingIntermediate)];
+
+	const FTransform IndexProximal = JointTransforms[static_cast<int>(EHandKeypoint::IndexProximal)];
+	const FTransform MiddleProximal = JointTransforms[static_cast<int>(EHandKeypoint::MiddleProximal)];
+	const FTransform RingProximal = JointTransforms[static_cast<int>(EHandKeypoint::RingProximal)];
 	
-	const float Distance2 = FVector::Dist(Thumb.GetLocation(), Middle.GetLocation());
 	
-	//UE_LOG(LogTemp, Warning, TEXT("Pinch str %f"), Distance2);
+	const float	PinchStrength = FVector::Dist(ThumbTip.GetLocation(), IndexTip.GetLocation());
+	IsPinched = PinchStrength <= PinchThreshold;
 	
-	if (Distance1 < PinchThreshold || Distance2 < PinchThreshold) return true;
+	ScissorPinchStrength = FVector::Dist (IndexDistal.GetLocation(), ThumbDistal.GetLocation());
+	
+	if (GetFingerCurl(IndexDistal, IndexIntermediate, IndexProximal) &&
+		GetFingerCurl(MiddleDistal, MiddleIntermediate, MiddleProximal) &&
+		GetFingerCurl(RingDistal, RingIntermediate, RingProximal)) IsHandCurled = true;
+	else IsHandCurled = false;
+	
+	IsGrabbing = IsPinched || IsHandCurled;
+}
+
+bool AVR_Hand_Tracked::GetFingerCurl(const FTransform& Distal, const FTransform& Intermediate, const FTransform& Proximal)
+{
+	const FVector DistRot = Distal.Rotator().Vector();
+	const FVector IntRot = Intermediate.Rotator().Vector();
+	const FVector ProxRot = Proximal.Rotator().Vector();
+
+	const float DistIntAngle = GetAngleDegrees(DistRot, IntRot);
+	const float IntProxAngle = GetAngleDegrees(IntRot, ProxRot);
+	
+	if ((DistIntAngle + IntProxAngle) > CurlThreshold) return true;
 	
 	return false;
 }
+
 
 void AVR_Hand_Tracked::DrawJointMeshDebug()
 {

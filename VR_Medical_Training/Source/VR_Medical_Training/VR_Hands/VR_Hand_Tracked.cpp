@@ -3,6 +3,7 @@
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Components/PoseableMeshComponent.h"
 #include "Components/SphereComponent.h"
+#include "VR_Medical_Training/GrabbableDrawer.h"
 #include "VR_Medical_Training/GrabbableItem.h"
 #include "VR_Medical_Training/GrabbableScissors.h"
 
@@ -13,6 +14,8 @@ AVR_Hand_Tracked::AVR_Hand_Tracked()
 	SetupComponents();
 	
 	SetupColliders();
+	
+	
 }
 
 void AVR_Hand_Tracked::BeginPlay()
@@ -81,19 +84,8 @@ void AVR_Hand_Tracked::Tick(float DeltaTime)
 	if (IsGrabbing) GrabItem();
 	else if (ShouldDropItem()) DropItem();
 	
-	if (Grabbed && Grabbed->IsInSpawn)
-			UE_LOG(LogTemp, Warning, TEXT("IsInSpawn true"));
-	
 	CalculateHandPoses();
 	
-	if (IsGrabbing)  { UE_LOG(LogTemp, Warning, TEXT("IsGrabbing: true")); }
-	else UE_LOG(LogTemp, Warning, TEXT("IsGrabbing: false"));
-	
-	if (IsPinched)  { UE_LOG(LogTemp, Warning, TEXT("IsPinched: true")); }
-	else UE_LOG(LogTemp, Warning, TEXT("IsPinched: false"));
-	
-	if (IsHandCurled)  { UE_LOG(LogTemp, Warning, TEXT("IsHandCurled: true")); }
-	else UE_LOG(LogTemp, Warning, TEXT("IsHandCurled: false"));
 }
 
 bool AVR_Hand_Tracked::ShouldDropItem()
@@ -326,8 +318,6 @@ void AVR_Hand_Tracked::GrabItem()
 		return;
 	}
 	
-	UE_LOG(LogTemp, Warning, TEXT("GrabItem()"));
-	
 	TArray<AActor*> OverlappingActors;
 	IndexTipCollider -> GetOverlappingActors(OverlappingActors);
 	
@@ -349,6 +339,10 @@ void AVR_Hand_Tracked::GrabItem()
 			GrabMode = EGrabMode::StickToHand;
 		}
 		
+		if (Cast<AGrabbableDrawer>(GrabbedActor))
+		{
+			
+		}
 		else
 		{
 			GrabbedActor->AttachToComponent(HandMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);

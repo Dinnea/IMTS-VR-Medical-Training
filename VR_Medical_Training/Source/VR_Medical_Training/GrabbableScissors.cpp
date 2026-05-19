@@ -18,6 +18,7 @@ void AGrabbableScissors::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	if (!OwningHand)
 		return;
+	
 	FVector Location =	OwningHand->GetHandMesh()->GetBoneLocationByName("XRHand_IndexDistal", EBoneSpaces::WorldSpace);
 	
 	this->SetActorLocation(Location+MeshOffset);

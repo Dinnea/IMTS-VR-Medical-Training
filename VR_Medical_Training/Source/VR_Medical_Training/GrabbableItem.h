@@ -20,7 +20,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	
 	virtual void Grab(AVR_Hand_Tracked* Hand);
-	void Drop();
+	virtual void Drop();
 	void OnSpawn(ASpawnZone* InSpawnZone);
 	
 	UFUNCTION()
@@ -66,8 +66,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UNiagaraComponent> HoverHighlight;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<USceneComponent> Offset;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UBoxComponent> Collider;

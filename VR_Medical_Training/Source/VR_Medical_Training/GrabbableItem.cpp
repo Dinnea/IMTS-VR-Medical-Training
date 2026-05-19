@@ -63,7 +63,7 @@ void AGrabbableItem::Drop()
 	OwningHand = nullptr;
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	Collider->SetSimulatePhysics(true);
-	Collider->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	//Collider->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 }
 
 void AGrabbableItem::OnSpawn(ASpawnZone* InSpawnZone)

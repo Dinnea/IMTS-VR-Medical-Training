@@ -25,7 +25,7 @@ void AGrabbableDrawer::Tick(float DeltaSeconds)
 	
 	FVector Target = FVector(DrawerOrigin.X-Distance, DrawerOrigin.Y, DrawerOrigin.Z);
 	
-	SetActorLocation(Target);
+	GetParentComponent()->SetRelativeLocation(Target);
 	
 	UE_LOG(LogTemp, Warning, TEXT("Target location: %s"), *Target.ToString());
 	
@@ -34,7 +34,7 @@ void AGrabbableDrawer::Tick(float DeltaSeconds)
 void AGrabbableDrawer::SetMaxOffset(const FVector OriginalLocation, const float MaxOffset)
 {
 	
-	UE_LOG(LogTemp, Warning, TEXT("Origiinal location: %s"), *OriginalLocation.ToString());
+	UE_LOG(LogTemp, Warning, TEXT("Original location: %s"), *OriginalLocation.ToString());
 	DrawerOrigin = OriginalLocation;
 	
 	ConstraintMin = OriginalLocation.X;

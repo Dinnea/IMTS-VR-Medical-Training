@@ -55,7 +55,7 @@ void AGrabbableItem::Grab(AVR_Hand_Tracked* Hand)
 	
 	OwningHand = Hand;
 	Collider->SetSimulatePhysics(false);
-	SetActorRelativeLocation(MeshOffset);
+	if (UseMeshOffsetOnGrab) SetActorRelativeLocation(MeshOffset);
 }
 
 void AGrabbableItem::Drop()

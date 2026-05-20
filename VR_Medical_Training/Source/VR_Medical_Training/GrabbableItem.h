@@ -73,6 +73,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UMeshComponent> MeshComp;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool UseMeshOffsetOnGrab = true;
+	
 	FVector MeshOffset;
 	
 template <typename TMeshComponent>

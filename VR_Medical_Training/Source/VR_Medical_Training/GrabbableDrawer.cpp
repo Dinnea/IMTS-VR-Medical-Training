@@ -15,23 +15,31 @@ void AGrabbableDrawer::Tick(float DeltaSeconds)
 
 	const float XLocation = OwningHand->GetJointTransform(EJoint::Palm).GetLocation().X;
 	
-	float Distance = ConstraintMin - XLocation;
+	float Distance =  FMath::Abs(DrawerOrigin.X - XLocation);
 	
 	UE_LOG(LogTemp, Warning, TEXT("Distance: %f"), Distance);
 	
-	Distance = FMath::Clamp(Distance, ConstraintMin, ConstraintMax);
+	Distance = FMath::Clamp(Distance, 0, ConstraintMax);
 	
-	TestLocation = FVector(OriginalLocation.X - Distance, OriginalLocation.Y, OriginalLocation.Z);
+	UE_LOG(LogTemp, Warning, TEXT("Distance clamped: %f"), Distance);
+	
+	FVector Target = FVector(DrawerOrigin.X-Distance, DrawerOrigin.Y, DrawerOrigin.Z);
+	
+	SetActorLocation(Target);
+	
+	UE_LOG(LogTemp, Warning, TEXT("Target location: %s"), *Target.ToString());
 	
 }
 
-void AGrabbableDrawer::SetMaxOffset(const float MaxOffset)
+void AGrabbableDrawer::SetMaxOffset(const FVector OriginalLocation, const float MaxOffset)
 {
-	OriginalLocation = GetActorLocation();
-	ConstraintMin = OriginalLocation.X;
-	ConstraintMax = ConstraintMin + MaxOffset;
 	
-	TestLocation = OriginalLocation;
+	UE_LOG(LogTemp, Warning, TEXT("Origiinal location: %s"), *OriginalLocation.ToString());
+	DrawerOrigin = OriginalLocation;
+	
+	ConstraintMin = OriginalLocation.X;
+	ConstraintMax = MaxOffset;
+	
 }
 
 void AGrabbableDrawer::Drop()
@@ -42,7 +50,4 @@ void AGrabbableDrawer::Drop()
 void AGrabbableDrawer::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	MeshOffset = FVector::ZeroVector;
-
 }

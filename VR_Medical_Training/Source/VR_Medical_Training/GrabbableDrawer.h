@@ -18,11 +18,11 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 	
 	UFUNCTION(BlueprintCallable)
-	void SetMaxOffset(const float MaxOffset);
+	void SetMaxOffset(const FVector OriginalLocation, const float MaxOffset);
 	virtual void Drop() override;
 	
 	UPROPERTY(BlueprintReadOnly)
-	FVector TestLocation = FVector ::ZeroVector;
+	FVector DrawerOrigin = FVector ::ZeroVector;
 protected:
 	virtual void BeginPlay() override;
 	
@@ -31,6 +31,6 @@ private:
 	float ConstraintMin;
 	float ConstraintMax;
 	
-	FVector OriginalLocation;
+	
 	
 };

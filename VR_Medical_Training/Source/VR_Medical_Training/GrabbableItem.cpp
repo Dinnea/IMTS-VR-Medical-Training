@@ -5,11 +5,7 @@
 
 AGrabbableItem::AGrabbableItem()
 {
-	PrimaryActorTick.bCanEverTick = true;
-	
-	// Origin = CreateDefaultSubobject<USceneComponent>("Origin");
-	// SetRootComponent(Origin);
-	
+	PrimaryActorTick.bCanEverTick = true;	
 	
 	Collider = CreateDefaultSubobject<UBoxComponent>("Collider");	
 	Collider->SetSimulatePhysics(true);
@@ -18,10 +14,9 @@ AGrabbableItem::AGrabbableItem()
 	SetRootComponent(Collider);	
 	
 	DropSFX = CreateDefaultSubobject<UAudioComponent>("DropSFX");
-	HoverHighlight = CreateDefaultSubobject<UNiagaraComponent>("HoverHighlight");
 	
 	//HoverHighlight->SetupAttachment(Origin);
-	//DropSFX->SetupAttachment(Origin);
+	DropSFX->SetupAttachment(Collider);
 }
 
 void AGrabbableItem::OnConstruction(const FTransform& Transform)
@@ -77,7 +72,11 @@ void AGrabbableItem::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor*
 	if (!OtherActor || OtherActor == this || OtherActor == GetAttachParentActor())
 		return;
 	
-	UE_LOG(LogTemp, Warning, TEXT("OVERLAP %s"), *OtherComp->GetName());
+	if (Cast<AVR_Hand>(OtherActor))
+		
+	{ if (!OutlineMaterial) UE_LOG(LogTemp, Warning, TEXT("OutlineMaterial missing")); }
+		//MeshComp->SetOverlayMaterial(OutlineMaterial); }
+		
 	
 	if (auto* Spawn = Cast<ASpawnZone> (OtherActor))
 		IsInSpawn = Spawn == SpawnZone;
@@ -88,6 +87,9 @@ void AGrabbableItem::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* O
 {
 	if (!OtherActor || OtherActor == this || OtherActor == GetAttachParentActor())
 		return;
+	
+	if (Cast<AVR_Hand>(OtherActor))
+		MeshComp->SetOverlayMaterial(nullptr);
 	
 	if (Cast<ASpawnZone> (OtherActor))
 		IsInSpawn = false;

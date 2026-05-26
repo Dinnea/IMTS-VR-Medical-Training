@@ -63,8 +63,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UAudioComponent> DropSFX;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TObjectPtr<UNiagaraComponent> HoverHighlight;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UMaterialInstance> OutlineMaterial;
 	
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)

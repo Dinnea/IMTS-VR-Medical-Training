@@ -23,6 +23,10 @@ public:
 	
 	UPROPERTY(BlueprintReadOnly)
 	FVector DrawerOrigin = FVector ::ZeroVector;
+	
+	UPROPERTY(BlueprintReadWrite)
+	TObjectPtr<AActor> Parent;
+	
 protected:
 	virtual void BeginPlay() override;
 	
@@ -30,7 +34,5 @@ protected:
 private:
 	float ConstraintMin;
 	float ConstraintMax;
-	
-	
 	
 };

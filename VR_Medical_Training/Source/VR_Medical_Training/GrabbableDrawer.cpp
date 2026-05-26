@@ -12,22 +12,25 @@ void AGrabbableDrawer::Tick(float DeltaSeconds)
 	if (!OwningHand)
 		return;
 
-
-	const float XLocation = OwningHand->GetJointTransform(EJoint::Palm).GetLocation().X;
+	const FTransform ParentTransform = Parent->GetActorTransform();
 	
-	float Distance =  FMath::Abs(DrawerOrigin.X - XLocation);
+	FVector HandLocation = OwningHand->GetJointTransform(EJoint::Palm).GetLocation();
+	// Make relative to parent
+	HandLocation = ParentTransform.InverseTransformPosition(HandLocation);
+	const float XLocation = HandLocation.X;
 	
-	UE_LOG(LogTemp, Warning, TEXT("Distance: %f"), Distance);
+	float Distance =  XLocation;
 	
-	Distance = FMath::Clamp(Distance, 0, ConstraintMax);
 	
-	UE_LOG(LogTemp, Warning, TEXT("Distance clamped: %f"), Distance);
+	Distance = FMath::Clamp(Distance, ConstraintMin, ConstraintMax);
 	
-	FVector Target = FVector(DrawerOrigin.X-Distance, DrawerOrigin.Y, DrawerOrigin.Z);
+	//UE_LOG(LogTemp, Warning, TEXT("Distance clamped: %f"), Distance);
+	
+	FVector Target = FVector(Distance, DrawerOrigin.Y, DrawerOrigin.Z);
 	
 	GetParentComponent()->SetRelativeLocation(Target);
 	
-	UE_LOG(LogTemp, Warning, TEXT("Target location: %s"), *Target.ToString());
+	//UE_LOG(LogTemp, Warning, TEXT("Target location: %s"), *Target.ToString());
 	
 }
 
@@ -44,6 +47,7 @@ void AGrabbableDrawer::SetMaxOffset(const FVector OriginalLocation, const float 
 
 void AGrabbableDrawer::Drop()
 {
+	UE_LOG(LogTemp, Warning, TEXT("drop???"));
 	OwningHand = nullptr;
 }
 

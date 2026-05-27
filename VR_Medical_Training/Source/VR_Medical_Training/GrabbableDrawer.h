@@ -6,6 +6,7 @@
 #include "GrabbableItem_Static.h"
 #include "GrabbableDrawer.generated.h"
 
+class USpawner;
 /**
  * 
  */
@@ -15,11 +16,17 @@ class VR_MEDICAL_TRAINING_API AGrabbableDrawer : public AGrabbableItem_Static
 	GENERATED_BODY()
 	
 public:
+	AGrabbableDrawer();
+	
 	virtual void Tick(float DeltaSeconds) override;
 	
 	UFUNCTION(BlueprintCallable)
 	void SetMaxOffset(const FVector OriginalLocation, const float MaxOffset);
 	virtual void Drop() override;
+	void SpawnObjects();
+	
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USpawner> Spawner;
 	
 	UPROPERTY(BlueprintReadOnly)
 	FVector DrawerOrigin = FVector ::ZeroVector;

@@ -11,9 +11,4 @@ class VR_MEDICAL_TRAINING_API AGrabbableItem_Static : public AGrabbableItem
 	
 public:
 	AGrabbableItem_Static();
-	
-protected:
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<UStaticMeshComponent> Mesh;
 };

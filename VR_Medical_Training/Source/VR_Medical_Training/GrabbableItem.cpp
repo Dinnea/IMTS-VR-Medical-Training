@@ -73,9 +73,7 @@ void AGrabbableItem::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor*
 		return;
 	
 	if (Cast<AVR_Hand>(OtherActor))
-		
-	{ if (!OutlineMaterial) UE_LOG(LogTemp, Warning, TEXT("OutlineMaterial missing")); }
-		//MeshComp->SetOverlayMaterial(OutlineMaterial); }
+		if (OutlineMaterial) MeshComp->SetOverlayMaterial(OutlineMaterial);
 		
 	
 	if (auto* Spawn = Cast<ASpawnZone> (OtherActor))

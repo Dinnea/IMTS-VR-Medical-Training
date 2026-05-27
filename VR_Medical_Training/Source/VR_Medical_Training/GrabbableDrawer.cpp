@@ -3,7 +3,15 @@
 
 #include "GrabbableDrawer.h"
 
+#include "Spawner.h"
+#include "SpawnZone.h"
 #include "VR_Hands/VR_Hand_Tracked.h"
+
+AGrabbableDrawer::AGrabbableDrawer()
+{
+	Spawner = CreateDefaultSubobject<USpawner>("SpawnPoint");
+	Spawner ->SetupAttachment(RootComponent);
+}
 
 void AGrabbableDrawer::Tick(float DeltaSeconds)
 {
@@ -17,29 +25,17 @@ void AGrabbableDrawer::Tick(float DeltaSeconds)
 	FVector HandLocation = OwningHand->GetJointTransform(EJoint::Palm).GetLocation();
 	// Make relative to parent
 	HandLocation = ParentTransform.InverseTransformPosition(HandLocation);
-	const float XLocation = HandLocation.X;
-	
-	float Distance =  XLocation;
-	
-	
-	Distance = FMath::Clamp(Distance, ConstraintMin, ConstraintMax);
-	
-	//UE_LOG(LogTemp, Warning, TEXT("Distance clamped: %f"), Distance);
-	
-	FVector Target = FVector(Distance, DrawerOrigin.Y, DrawerOrigin.Z);
+
+	const float Distance = FMath::Clamp(HandLocation.X, ConstraintMin, ConstraintMax);
+	const FVector Target = FVector(Distance, DrawerOrigin.Y, DrawerOrigin.Z);
 	
 	GetParentComponent()->SetRelativeLocation(Target);
-	
-	//UE_LOG(LogTemp, Warning, TEXT("Target location: %s"), *Target.ToString());
-	
 }
 
 void AGrabbableDrawer::SetMaxOffset(const FVector OriginalLocation, const float MaxOffset)
 {
 	
-	UE_LOG(LogTemp, Warning, TEXT("Original location: %s"), *OriginalLocation.ToString());
 	DrawerOrigin = OriginalLocation;
-	
 	ConstraintMin = OriginalLocation.X;
 	ConstraintMax = MaxOffset;
 	
@@ -47,11 +43,17 @@ void AGrabbableDrawer::SetMaxOffset(const FVector OriginalLocation, const float 
 
 void AGrabbableDrawer::Drop()
 {
-	UE_LOG(LogTemp, Warning, TEXT("drop???"));
 	OwningHand = nullptr;
+}
+
+void AGrabbableDrawer::SpawnObjects()
+{
+	
 }
 
 void AGrabbableDrawer::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	SpawnObjects();
 }

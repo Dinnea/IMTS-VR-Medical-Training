@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "SpawnZone.generated.h"
 
+class UBoxComponent;
 class AGrabbableItem;
 
 UCLASS()
@@ -19,7 +20,7 @@ protected:
 	
 	virtual void BeginPlay() override;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<UStaticMeshComponent> Zone;
+	TObjectPtr<UBoxComponent> Zone;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<AGrabbableItem> ToSpawn;

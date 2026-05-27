@@ -6,7 +6,7 @@ ASpawnZone::ASpawnZone()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	
-	Zone = CreateDefaultSubobject<UStaticMeshComponent>("Zone");
+	Zone = CreateDefaultSubobject<UBoxComponent>("Zone");
 	RootComponent = Zone;
 }
 

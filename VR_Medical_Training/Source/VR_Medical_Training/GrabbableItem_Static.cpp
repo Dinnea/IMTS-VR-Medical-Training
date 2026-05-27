@@ -2,5 +2,7 @@
 
 AGrabbableItem_Static::AGrabbableItem_Static()
 {
-	Mesh = CreateMeshComponent<UStaticMeshComponent>("Mesh");
+	MeshComp = CreateMeshComponent<UStaticMeshComponent>("Mesh");
+	
+	//MeshComp = Mesh;
 }

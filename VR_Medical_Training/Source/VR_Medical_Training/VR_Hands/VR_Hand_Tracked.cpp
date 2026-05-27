@@ -142,7 +142,7 @@ void AVR_Hand_Tracked::SetupColliders()
 
 void AVR_Hand_Tracked::SwitchGrabMode()
 {
-	GrabMode = GrabMode == EGrabMode::StickToHand ? EGrabMode::Realistic : EGrabMode::StickToHand;
+	//GrabMode = GrabMode == EGrabMode::StickToHand ? EGrabMode::Realistic : EGrabMode::StickToHand;
 }
 
 void AVR_Hand_Tracked::RegenerateJointBoneMaps()
@@ -348,6 +348,8 @@ void AVR_Hand_Tracked::GrabItem()
 			GrabbedActor->AttachToComponent(HandMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
 			UE_LOG(LogTemp, Warning, TEXT("pinch hold"));
 		}
+		// stop accidental multigrabbing
+		return;
 	}
 }
 

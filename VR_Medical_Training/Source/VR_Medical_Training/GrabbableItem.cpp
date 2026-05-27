@@ -15,7 +15,6 @@ AGrabbableItem::AGrabbableItem()
 	
 	DropSFX = CreateDefaultSubobject<UAudioComponent>("DropSFX");
 	
-	//HoverHighlight->SetupAttachment(Origin);
 	DropSFX->SetupAttachment(Collider);
 }
 
@@ -24,13 +23,6 @@ void AGrabbableItem::OnConstruction(const FTransform& Transform)
 	Super::OnConstruction(Transform);
 
 	FBoxSphereBounds Bounds;
-	// if (const auto* StaticMeshComponent = Cast<UStaticMeshComponent>(MeshComp))
-	// {
-	// 	if (const auto StaticMesh = StaticMeshComponent->GetStaticMesh())
-	// 		Bounds = StaticMesh->GetBounds();
-	// }
-	//
-	// else 
 	if (const auto* SkinnedMeshComponent = Cast<USkinnedMeshComponent>(MeshComp))
 	{
 		if (const auto* SkinnedAsset = SkinnedMeshComponent->GetSkinnedAsset())

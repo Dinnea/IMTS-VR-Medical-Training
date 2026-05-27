@@ -14,9 +14,4 @@ class VR_MEDICAL_TRAINING_API AGrabbableItem_Poseable : public AGrabbableItem
 	
 public:
 	AGrabbableItem_Poseable();
-	
-protected:
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<USkeletalMeshComponent> Mesh;
 };

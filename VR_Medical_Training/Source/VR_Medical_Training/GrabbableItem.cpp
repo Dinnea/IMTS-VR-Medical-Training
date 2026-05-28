@@ -89,7 +89,10 @@ void AGrabbableItem::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* O
 void AGrabbableItem::OnComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	DropSFX ->Play();
+	
+	UE_LOG(LogTemp, Warning, TEXT("BOOM"));
+	if (DropSFX)
+		DropSFX ->Play();
 }
 
 void AGrabbableItem::BeginPlay()
@@ -102,6 +105,8 @@ void AGrabbableItem::BeginPlay()
 	Collider->OnComponentBeginOverlap.AddDynamic(this, &AGrabbableItem::OnOverlapBegin);
 	Collider->OnComponentEndOverlap.AddDynamic(this, &AGrabbableItem::OnOverlapEnd);
 	Collider->OnComponentHit.AddDynamic(this, &AGrabbableItem::OnComponentHit);
+	
+	Collider->SetNotifyRigidBodyCollision(true);
 }
 
 void AGrabbableItem::Tick(float DeltaTime)

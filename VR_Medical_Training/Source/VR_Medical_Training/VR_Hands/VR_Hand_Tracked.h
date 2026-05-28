@@ -4,11 +4,9 @@
 #include "HeadMountedDisplayTypes.h"
 #include "VR_Hand.h"
 #include "Components/PoseableMeshComponent.h"
-#include "VR_Medical_Training/Gestures.h"
 #include "VR_Medical_Training/JointData.h"
 #include "VR_Hand_Tracked.generated.h"
 
-struct FPoseTransition;
 class UPoseableMeshComponent;
 class UHandPoseRecognizer;
 class UHandGestureRecognizer;
@@ -27,6 +25,14 @@ enum class EGrabMode : uint8
 	StickToHand	
 };
 
+UENUM()
+enum EHandPose : uint8
+{
+	Grab,
+	Pinch,
+	None = 99
+};
+
 UCLASS()
 class VR_MEDICAL_TRAINING_API AVR_Hand_Tracked : public AVR_Hand
 {
@@ -35,8 +41,6 @@ class VR_MEDICAL_TRAINING_API AVR_Hand_Tracked : public AVR_Hand
 public:
 	void SetupComponents();
 	void SetupColliders();
-	UFUNCTION(BlueprintCallable)
-	void SwitchGrabMode();
 	AVR_Hand_Tracked();
 	void InitializeJointData();
 	virtual void Tick(float DeltaTime) override;
@@ -54,18 +58,9 @@ public:
 	UFUNCTION()
 	TArray<FName> GetBonePool() {return BonePool;}
 	
-	DECLARE_MULTICAST_DELEGATE_OneParam(FOnPoseTransition, const FPoseTransition&);
-	FOnPoseTransition OnPoseTransition;
 
 	UPROPERTY(BlueprintReadOnly, Category= "VR_Hands|Pose")
-	float ScissorPinchStrength;
-	
-	UPROPERTY(BlueprintReadOnly, Category="VR_Hand|Pose")
-	bool IsPinched;
-	
-	UPROPERTY(BlueprintReadOnly, Category="VR_Hand|Pose")
-	bool IsHandCurled;
-	
+	float ScissorPinchStrength;	
 
 protected:
 	virtual void BeginPlay() override;
@@ -79,7 +74,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Interaction")
 	float FingerTipColliderRadius = 1;
 	
-	EGrabMode GrabMode = EGrabMode::Realistic;
 		
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VR_Hands|Visual")
 	TObjectPtr<UPoseableMeshComponent> HandMesh;
@@ -129,14 +123,18 @@ private:
 	void DrawJointNamesDebug();
 	void AnimateHand();
 	void GrabItem();
+	void PinchItem();
 	void DropItem();
 	
-	void CalculateHandPoses();
+	EHandPose CalculateHandPoses();
 	
 	bool GetFingerCurl(const FTransform& Distal, const FTransform& Intermediate, const FTransform& Proximal);
 	bool ShouldDropItem();
 	
+	EHandPose HandPose = None;
 	
+	
+	EGrabMode GrabMode = EGrabMode::Realistic;
 	TArray<FTipBinding> FingerTipBindings;
 	
 	UPROPERTY() TObjectPtr<USceneComponent> ColliderParent;
@@ -159,7 +157,6 @@ private:
 	FXRHandTrackingState TrackedHandData;
 	int JointCount = 26;
 	
-	bool IsGrabbing;
 	
 	float GetAngleDegrees(FVector A, FVector B)
 	{

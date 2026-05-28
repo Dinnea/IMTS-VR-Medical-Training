@@ -14,8 +14,6 @@ AVR_Hand_Tracked::AVR_Hand_Tracked()
 	SetupComponents();
 	
 	SetupColliders();
-	
-	
 }
 
 void AVR_Hand_Tracked::BeginPlay()
@@ -80,11 +78,12 @@ void AVR_Hand_Tracked::Tick(float DeltaTime)
 	
 	if (bAnimateHand)
 		AnimateHand();
+	HandPose = CalculateHandPoses();
 	
-	if (IsGrabbing) GrabItem();
+	if (HandPose == Pinch) PinchItem();
+	else if (HandPose == Grab) GrabItem();
 	else if (ShouldDropItem()) DropItem();
 	
-	CalculateHandPoses();
 	
 }
 
@@ -93,11 +92,11 @@ bool AVR_Hand_Tracked::ShouldDropItem()
 	switch (GrabMode)
 	{
 	case EGrabMode::Realistic:
-		return !IsGrabbing && Grabbed != nullptr;
+		return HandPose == None && Grabbed != nullptr;
 		
 	case EGrabMode::StickToHand:
 		if (Grabbed)
-			return !IsGrabbing && Grabbed->IsInSpawn;
+			return HandPose == None && Grabbed->IsInSpawn;
 		break;
 	}
 	
@@ -122,7 +121,7 @@ void AVR_Hand_Tracked::SetupColliders()
 	IndexTipCollider = CreateDefaultSubobject<USphereComponent>("IndexTipCollider");
 	MiddleTipCollider = CreateDefaultSubobject<USphereComponent>("MiddleTipCollider");
 	RingTipCollider = CreateDefaultSubobject<USphereComponent>("RingTipCollider");
-	PinkieTipCollider = CreateDefaultSubobject<USphereComponent>("LittleTipCollider");
+	//PinkieTipCollider = CreateDefaultSubobject<USphereComponent>("LittleTipCollider");
 	
 	FingerTipBindings=
 	{
@@ -130,7 +129,7 @@ void AVR_Hand_Tracked::SetupColliders()
 		{ EJoint::IndexTip,  IndexTipCollider },
 		{ EJoint::MiddleTip, MiddleTipCollider },
 		{ EJoint::RingTip,   RingTipCollider },
-		{ EJoint::LittleTip, PinkieTipCollider }
+		//{ EJoint::LittleTip, PinkieTipCollider }
 	};
 	
 	for (const auto [Joint, Collider] : FingerTipBindings)
@@ -138,11 +137,6 @@ void AVR_Hand_Tracked::SetupColliders()
 		Collider->SetupAttachment(ColliderParent);
 		Collider->SetSphereRadius(FingerTipColliderRadius);
 	}
-}
-
-void AVR_Hand_Tracked::SwitchGrabMode()
-{
-	//GrabMode = GrabMode == EGrabMode::StickToHand ? EGrabMode::Realistic : EGrabMode::StickToHand;
 }
 
 void AVR_Hand_Tracked::RegenerateJointBoneMaps()
@@ -313,14 +307,20 @@ void AVR_Hand_Tracked::AnimateHand()
 void AVR_Hand_Tracked::GrabItem()
 {
 	if (Grabbed!=nullptr)
-	{
-		//UE_LOG(LogTemp, Warning, TEXT("Already holding actor"));
 		return;
-	}
 	
 	TArray<AActor*> OverlappingActors;
-	IndexTipCollider -> GetOverlappingActors(OverlappingActors);
+	TArray<AActor*> TempActors;
 	
+	for (const auto[Joint, Collider] : FingerTipBindings )
+	{
+		TempActors.Reset();
+		Collider->GetOverlappingActors(TempActors);
+		
+		for (AActor* Actor : TempActors)
+			if (Actor)
+				OverlappingActors.Add(Actor);
+	}
 	
 	for (auto* Actor : OverlappingActors)
 	{
@@ -332,23 +332,52 @@ void AVR_Hand_Tracked::GrabItem()
 		GrabbedActor->Grab(this);
 		Grabbed = GrabbedActor;
 		
-		FName SocketName = "Socket_PinchHold";
-		
-		if (auto* Scissors = Cast<AGrabbableScissors>(GrabbedActor))
-		{
-			GrabMode = EGrabMode::StickToHand;
-		}
+		FName SocketName = "Socket_Palm";
 		
 		if (Cast<AGrabbableDrawer>(GrabbedActor))
 		{
-			
 		}
 		else
 		{
 			GrabbedActor->AttachToComponent(HandMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
 			UE_LOG(LogTemp, Warning, TEXT("pinch hold"));
 		}
-		// stop accidental multigrabbing
+		// stop accidental multi grabbing
+		return;
+	}
+}
+
+void AVR_Hand_Tracked::PinchItem()
+{
+	if (Grabbed!=nullptr)
+		return;
+	
+	TArray<AActor*> OverlappingActors;
+	IndexTipCollider -> GetOverlappingActors(OverlappingActors);
+	
+	
+	for (auto* Actor : OverlappingActors)
+	{
+		if (!Actor || Actor == this) continue;
+		
+		auto* GrabbedActor = Cast<AGrabbableItem>(Actor);
+		if (!GrabbedActor) continue;
+		if (!GrabbedActor->CanBePinchGrabbed) continue;
+		
+		GrabbedActor->Grab(this);
+		Grabbed = GrabbedActor;
+		
+		FName SocketName = "Socket_PinchHold";
+		
+		if (auto* Scissors = Cast<AGrabbableScissors>(GrabbedActor))
+		{
+			GrabMode = EGrabMode::StickToHand;
+		}
+
+		else
+			GrabbedActor->AttachToComponent(HandMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
+		
+		// stop accidental multi grabbing
 		return;
 	}
 }
@@ -365,7 +394,7 @@ void AVR_Hand_Tracked::DropItem()
 	Grabbed = nullptr;
 }
 
-void AVR_Hand_Tracked::CalculateHandPoses()
+EHandPose AVR_Hand_Tracked::CalculateHandPoses()
 {
 	const FTransform ThumbTip =  JointTransforms[static_cast<int>(EHandKeypoint::ThumbTip)];
 	const FTransform IndexTip = JointTransforms[static_cast<int>(EHandKeypoint::IndexTip)];
@@ -386,18 +415,17 @@ void AVR_Hand_Tracked::CalculateHandPoses()
 	const FTransform MiddleProximal = JointTransforms[static_cast<int>(EHandKeypoint::MiddleProximal)];
 	const FTransform RingProximal = JointTransforms[static_cast<int>(EHandKeypoint::RingProximal)];
 	
-	
-	const float	PinchStrength = FVector::Dist(ThumbTip.GetLocation(), IndexTip.GetLocation());
-	IsPinched = PinchStrength <= PinchThreshold;
-	
 	ScissorPinchStrength = FVector::Dist (IndexDistal.GetLocation(), ThumbDistal.GetLocation());
 	
 	if (GetFingerCurl(IndexDistal, IndexIntermediate, IndexProximal) &&
 		GetFingerCurl(MiddleDistal, MiddleIntermediate, MiddleProximal) &&
-		GetFingerCurl(RingDistal, RingIntermediate, RingProximal)) IsHandCurled = true;
-	else IsHandCurled = false;
+		GetFingerCurl(RingDistal, RingIntermediate, RingProximal)) return  Grab;
+
+	const float	PinchStrength = FVector::Dist(ThumbTip.GetLocation(), IndexTip.GetLocation());
 	
-	IsGrabbing = IsPinched || IsHandCurled;
+	if (PinchStrength <= PinchThreshold) return Pinch;
+	
+	return None;
 }
 
 bool AVR_Hand_Tracked::GetFingerCurl(const FTransform& Distal, const FTransform& Intermediate, const FTransform& Proximal)

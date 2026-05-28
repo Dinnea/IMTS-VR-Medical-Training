@@ -53,6 +53,9 @@ public:
 	UPrimitiveComponent* OtherComp,
 	FVector NormalImpulse,
 	const FHitResult& Hit);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	bool CanBePinchGrabbed;
 	
 protected:
 	virtual void BeginPlay() override;

@@ -1,6 +1,8 @@
 #include "GrabbableItem.h"
 #include "SpawnZone.h"
 #include "Components/AudioComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 #include "VR_Hands/VR_Hand_Tracked.h"
 
 AGrabbableItem::AGrabbableItem()
@@ -12,10 +14,6 @@ AGrabbableItem::AGrabbableItem()
 	Collider->SetEnableGravity(true);
 	
 	SetRootComponent(Collider);	
-	
-	DropSFX = CreateDefaultSubobject<UAudioComponent>("DropSFX");
-	
-	DropSFX->SetupAttachment(Collider);
 }
 
 void AGrabbableItem::OnConstruction(const FTransform& Transform)
@@ -86,13 +84,19 @@ void AGrabbableItem::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* O
 }
 
 
-void AGrabbableItem::OnComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void AGrabbableItem::PlayImpactSFX(const FHitResult& Hit)
 {
-	
+	SoundCooldown = SoundCooldownPeriod;
 	UE_LOG(LogTemp, Warning, TEXT("BOOM"));
 	if (DropSFX)
-		DropSFX ->Play();
+		UGameplayStatics::PlaySoundAtLocation(this, DropSFX, this->GetActorLocation());
+}
+
+void AGrabbableItem::OnComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
+                                    UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (SoundCooldown <= 0)
+		PlayImpactSFX(Hit);
 }
 
 void AGrabbableItem::BeginPlay()
@@ -114,5 +118,9 @@ void AGrabbableItem::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	
 	Collider->UpdateOverlaps();
+	
+	SoundCooldown -= DeltaTime;
+	
+	UE_LOG(LogTemp, Warning, TEXT("SoundCooldown: %f"), SoundCooldown);
 }
 

@@ -63,7 +63,6 @@ public:
 	UFUNCTION(BlueprintSetter, Category = "MR Utility Kit")
 	void SetGridDensity(double Density);
 
-public:
 	void Tick(float DeltaSeconds) override;
 
 protected:
@@ -87,7 +86,7 @@ protected:
 #endif
 
 private:
-	// Room UUID to spawned actors in this room
+	/** Room UUID to spawned actors in this room */
 	TMap<AMRUKRoom*, TArray<AMRUKGuardian*>> SpawnedGuardians;
 
 	UPROPERTY()

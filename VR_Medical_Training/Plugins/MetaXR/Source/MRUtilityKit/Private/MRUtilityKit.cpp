@@ -44,6 +44,7 @@ bool FMRUKLabelFilter::PassesFilter(const TArray<FString>& Labels) const
 			return false;
 		}
 	}
+
 	for (const FString& IncludedLabel : IncludedLabels)
 	{
 		if (Labels.Contains(IncludedLabel))
@@ -71,8 +72,11 @@ void FMRUKModule::ShutdownModule()
 {
 	// This function may be called during shutdown to clean up your module.  For modules that support
 	// dynamic reloading, we call this function before unloading the module.
-	OpenXrExtension->UnregisterOpenXRExtensionModularFeature();
-	OpenXrExtension.Reset();
+	if (OpenXrExtension)
+	{
+		OpenXrExtension->UnregisterOpenXRExtensionModularFeature();
+		OpenXrExtension.Reset();
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

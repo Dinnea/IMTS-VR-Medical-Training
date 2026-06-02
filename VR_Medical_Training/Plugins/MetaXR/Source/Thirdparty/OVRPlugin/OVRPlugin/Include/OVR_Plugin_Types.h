@@ -26,10 +26,11 @@
 #define OVRP_STRINGIFY(x) OVRP_STRINGIFYIMPL(x)
 #endif
 
-// Note: OVRP_MINOR_VERSION == OCULUS_SDK_VERSION + 32
+// Note: OVRP_MINOR_VERSION == OCULUS_SDK_VERSION + 32 for OVRP_MINOR_VERSION < 200
+// Otherwise, OVRP_MINOR_VERSION == OCULUS_SDK_VERSION
 
 #define OVRP_MAJOR_VERSION 1
-#define OVRP_MINOR_VERSION 117
+#define OVRP_MINOR_VERSION 201
 #define OVRP_PATCH_VERSION 0
 
 #define OVRP_VERSION OVRP_MAJOR_VERSION, OVRP_MINOR_VERSION, OVRP_PATCH_VERSION
@@ -3349,30 +3350,6 @@ typedef struct ovrpTriangleMesh_ {
   int* indices;
 } ovrpTriangleMesh;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 typedef enum {
   ovrpInteractionProfile_None = 0,
   ovrpInteractionProfile_Touch = 1,
@@ -3384,6 +3361,7 @@ typedef enum {
 
 
 
+  ovrpInteractionProfile_ExtHandInteraction = 6,
   ovrpInteractionProfile_EnumSize = 0x7fffffff
 } ovrpInteractionProfile;
 

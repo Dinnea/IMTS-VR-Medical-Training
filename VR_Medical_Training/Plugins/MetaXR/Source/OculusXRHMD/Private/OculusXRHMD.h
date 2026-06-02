@@ -27,7 +27,6 @@
 #include "SceneViewExtension.h"
 #include "Engine/Engine.h"
 #include "Engine/StaticMeshActor.h"
-#include "XRThreadUtils.h"
 #include "ProceduralMeshComponent.h"
 #include "Shader.h"
 #include "GlobalShader.h"
@@ -37,6 +36,24 @@
 
 namespace OculusXRHMD
 {
+	// TODO Audit uses of this function, the flush is expensive.
+	template <typename L>
+	void RunOnRHIThreadAndWait(FRHICommandListImmediate& RHICmdList, L&& Lambda)
+	{
+		check(RHICmdList.IsTopOfPipe());
+		RHICmdList.EnqueueLambda(MoveTemp(Lambda));
+		RHICmdList.ImmediateFlush(EImmediateFlushType::FlushRHIThread);
+	}
+
+	// TODO Audit uses of this function, the flush is expensive.
+	template <typename L>
+	void RunOnRenderingThreadAndWait(L&& Lambda)
+	{
+		check(IsInGameThread());
+		ENQUEUE_RENDER_COMMAND(OculusXRHMD_RunOnRenderingThreadAndWait)(MoveTemp(Lambda));
+		FlushRenderingCommands();
+	}
+
 	class FHardOcclusionsPS : public FGlobalShader
 	{
 		DECLARE_SHADER_TYPE(FHardOcclusionsPS, Global);
@@ -577,12 +594,12 @@ namespace OculusXRHMD
 		const FRotator GetSplashRotation() const { return SplashRotation; }
 		void SetSplashRotationToForward();
 
-		OCULUSXRHMD_API void StartGameFrame_GameThread();				// Called from OnStartGameFrame or from FOculusXRInput::SendControllerEvents (first actual call of the frame)
-		void FinishGameFrame_GameThread();								// Called from OnEndGameFrame
-		void StartRenderFrame_GameThread();								// Called from BeginRenderViewFamily
-		void FinishRenderFrame_RenderThread(FRDGBuilder& GraphBuilder); // Called from PostRenderViewFamily_RenderThread
-		void StartRHIFrame_RenderThread();								// Called from PreRenderViewFamily_RenderThread
-		void FinishRHIFrame_RHIThread();								// Called from FinishRendering_RHIThread
+		OCULUSXRHMD_API void StartGameFrame_GameThread();					   // Called from OnStartGameFrame or from FOculusXRInput::SendControllerEvents (first actual call of the frame)
+		void FinishGameFrame_GameThread();									   // Called from OnEndGameFrame
+		void StartRenderFrame_GameThread();									   // Called from BeginRenderViewFamily
+		void FinishRenderFrame_RenderThread(FRDGBuilder& GraphBuilder);		   // Called from PostRenderViewFamily_RenderThread
+		void StartRHIFrame_RenderThread(FRHICommandListImmediate& RHICmdList); // Called from PreRenderViewFamily_RenderThread
+		void FinishRHIFrame_RHIThread();									   // Called from FinishRendering_RHIThread
 
 		void GetSuggestedCpuAndGpuPerformanceLevels(EOculusXRProcessorPerformanceLevel& CpuPerfLevel, EOculusXRProcessorPerformanceLevel& GpuPerfLevel);
 		void SetSuggestedCpuAndGpuPerformanceLevels(EOculusXRProcessorPerformanceLevel CpuPerfLevel, EOculusXRProcessorPerformanceLevel GpuPerfLevel);

@@ -153,8 +153,8 @@ namespace OculusXRHMD
 		CheckInGameThread();
 
 		// OculusXRHMD is going away, but this object can live on until viewport is destroyed
-		ExecuteOnRenderThread([this]() {
-			ExecuteOnRHIThread([this]() {
+		RunOnRenderingThreadAndWait([this](FRHICommandListImmediate& RHICmdList) {
+			RunOnRHIThreadAndWait(RHICmdList, [this](FRHICommandListImmediate& RHICmdList) {
 				OculusXRHMD = nullptr;
 			});
 		});
@@ -204,10 +204,9 @@ namespace OculusXRHMD
 				const auto MirrorTextureSize = FIntPoint(MirrorTextureRHI->GetDesc().Extent.X, MirrorTextureRHI->GetDesc().Extent.Y);
 				if (MirrorWindowMode != ESpectatorScreenMode::Distorted || MirrorWindowSize != MirrorTextureSize)
 				{
-					RHICmdList.EnqueueLambda([](FRHICommandListImmediate& RHICmdList) {
+					RunOnRHIThreadAndWait(RHICmdList, [](FRHICommandListImmediate& RHICmdList) {
 						FOculusXRHMDModule::GetPluginWrapper().DestroyMirrorTexture2();
 					});
-					RHICmdList.ImmediateFlush(EImmediateFlushType::FlushRHIThread); // TODO is this needed? Converted from ExecuteOnRHIThread
 
 					MirrorTextureRHI = nullptr;
 				}

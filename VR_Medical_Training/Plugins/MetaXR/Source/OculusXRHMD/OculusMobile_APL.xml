@@ -416,6 +416,12 @@
 			<!-- Add Oculus Splash Screen -->
 			<if condition="bShowLaunchImage">
 				<true>
+					<!-- Default the Oculus Splash Screen type setting to mono -->
+					<setElement result="splashType" value="meta-data"/>
+					<addAttribute tag="$splashType" name="android:name" value="com.oculus.ossplash.type"/>
+					<addAttribute tag="$splashType" name="android:value" value="mono"/>
+					<addElement tag="application" name="splashType"/>
+					
 					<!-- Add Oculus Splash Screen colorspace setting -->
 					<setElement result="oculusSplashColorspace" value="meta-data"/>
 					<addAttribute tag="$oculusSplashColorspace" name="android:name" value="com.oculus.ossplash.colorspace"/>

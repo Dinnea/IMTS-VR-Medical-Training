@@ -54,7 +54,7 @@ namespace OculusXRHMD
 		{
 			TRefCountPtr<ID3D12Device> D3DDevice;
 
-			ExecuteOnRenderThread([&D3DDevice]() {
+			RunOnRenderingThreadAndWait([&D3DDevice](FRHICommandListImmediate& RHICmdList) {
 				D3DDevice = (ID3D12Device*)RHIGetNativeDevice();
 			});
 

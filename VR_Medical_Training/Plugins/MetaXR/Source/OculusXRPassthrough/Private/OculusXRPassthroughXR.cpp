@@ -22,8 +22,6 @@
 #include "RHIResourceUtils.h"
 #endif
 
-#include "XRThreadUtils.h"
-
 #define LOCTEXT_NAMESPACE "OculusXRPassthrough"
 
 namespace XRPassthrough
@@ -36,8 +34,8 @@ namespace XRPassthrough
 
 	FPassthroughXRSceneViewExtension::~FPassthroughXRSceneViewExtension()
 	{
-		ExecuteOnRenderThread([this]() {
-			InvAlphaTexture.SafeRelease();
+		ENQUEUE_RENDER_COMMAND(FPassthroughXRSceneViewExtension_dtor)([Tex = MoveTemp(InvAlphaTexture)](FRHICommandListImmediate& RHICmdList) mutable {
+			Tex.SafeRelease();
 		});
 	}
 

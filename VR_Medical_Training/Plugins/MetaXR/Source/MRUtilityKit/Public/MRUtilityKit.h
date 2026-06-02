@@ -437,6 +437,62 @@ enum class EMRUKEnvironmentRaycasterStatus : uint8
 };
 
 /**
+ * Specifies the type of trackable object.
+ */
+UENUM(BlueprintType)
+enum class EMRUKTrackableType : uint8
+{
+	/// No trackable type.
+	None,
+
+	/// Keyboard trackable.
+	Keyboard,
+
+	/// QR code trackable.
+	QRCode,
+};
+
+/**
+ * Specifies the type of marker payload for trackables like QR codes.
+ */
+UENUM(BlueprintType)
+enum class EMRUKMarkerPayloadType : uint8
+{
+	/// No payload.
+	NonePayload,
+
+	/// Invalid payload (cannot be decoded).
+	InvalidPayload,
+
+	/// String payload.
+	StringPayload,
+
+	/// Binary payload.
+	BinaryPayload,
+};
+
+/**
+ * Configuration for trackable tracking. Use this to enable or disable different types of trackables.
+ */
+USTRUCT(BlueprintType)
+struct MRUTILITYKIT_API FMRUKTrackerConfiguration
+{
+	GENERATED_BODY()
+
+	/**
+	 * Whether keyboard tracking should be enabled.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MR Utility Kit")
+	bool bEnableKeyboardTracking = false;
+
+	/**
+	 * Whether QR code tracking should be enabled.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MR Utility Kit")
+	bool bEnableQRCodeTracking = false;
+};
+
+/**
  * Represents a hit result from an environment raycast.
  */
 USTRUCT(BlueprintType)
@@ -467,6 +523,25 @@ struct MRUTILITYKIT_API FMRUKEnvironmentRaycastHit
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MR Utility Kit")
 	FVector normal;
+};
+
+USTRUCT(BlueprintType)
+struct MRUTILITYKIT_API FMRUKTrackableKey
+{
+	GENERATED_BODY()
+
+	uint64_t Space;
+	uint64_t EntityId;
+
+	bool operator==(const FMRUKTrackableKey& Other) const
+	{
+		return Space == Other.Space && EntityId == Other.EntityId;
+	}
+
+	friend uint32_t GetTypeHash(const FMRUKTrackableKey& Key)
+	{
+		return HashCombine(GetTypeHash(Key.Space), GetTypeHash(Key.EntityId));
+	}
 };
 
 /**

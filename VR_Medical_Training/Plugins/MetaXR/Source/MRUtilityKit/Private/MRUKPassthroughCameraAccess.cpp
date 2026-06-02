@@ -158,7 +158,7 @@ bool UMRUKPassthroughCameraAccessSubsystem::Play(int& Width, int& Height, int Ma
 		VkDevice Device = VulkanRHI->RHIGetVkDevice();
 		VkQueue Queue = VulkanRHI->RHIGetGraphicsVkQueue();
 		uint32 QueueFamilyIndex = VulkanRHI->RHIGetGraphicsQueueFamilyIndex();
-		void* GetInstanceProcAddrFunc = (void*)GetVulkanInstanceProcAddr;
+		void* GetInstanceProcAddrFunc = reinterpret_cast<void*>(GetVulkanInstanceProcAddr);
 
 		ENQUEUE_RENDER_COMMAND(InitializePcaCamera)
 		([this, Instance, PhysicalDevice, Device, Queue, QueueFamilyIndex, GetInstanceProcAddrFunc, CameraEye](FRHICommandListImmediate& RHICmdList) {
@@ -370,7 +370,7 @@ void UMRUKPassthroughCameraAccessSubsystem::AddTexture(UMRUKPassthroughCameraAcc
 		return;
 	}
 
-	if (Textures[EyeIndex] != nullptr)
+	if (Textures[EyeIndex])
 	{
 		UE_LOG(LogMRUK, Error, TEXT("Only one PCA texture per eye is allowed!"));
 		return;
@@ -432,7 +432,7 @@ void UMRUKPassthroughCameraAccessSubsystem::OnWorldPreActorTick(UWorld* World, E
 			ENQUEUE_RENDER_COMMAND(UpdatePcaTexture)
 			([Texture, Resource](FRHICommandListImmediate& RHICmdList) {
 				Resource->UpdateFromGpuBuffer(RHICmdList);
-				MRUKShared::GetInstance()->CameraUpdateNativeTexture((int)Texture->PassthroughCameraAccess->CameraEye);
+				MRUKShared::GetInstance()->CameraUpdateNativeTexture(static_cast<int>(Texture->PassthroughCameraAccess->CameraEye));
 			});
 		}
 #endif
@@ -680,7 +680,7 @@ FString FPassthroughCameraAccessTextureResource::GetFriendlyName() const
 	{
 		return Owner.GetPathName();
 	}
-	return "";
+	return TEXT("");
 }
 
 uint32 FPassthroughCameraAccessTextureResource::GetSizeX() const
@@ -706,7 +706,6 @@ void FPassthroughCameraAccessTextureResource::CreateTexture(FRHICommandListBase&
 	if (TextureRHI.IsValid())
 	{
 		TextureRHI.SafeRelease();
-		TextureRHI = nullptr;
 	}
 
 	if (!IsValid(Owner))
@@ -765,7 +764,6 @@ void FPassthroughCameraAccessTextureResource::ReleaseRHI()
 	if (TextureRHI.IsValid())
 	{
 		TextureRHI.SafeRelease();
-		TextureRHI = nullptr;
 	}
 }
 

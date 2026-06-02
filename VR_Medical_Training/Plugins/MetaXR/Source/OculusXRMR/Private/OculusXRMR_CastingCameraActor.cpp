@@ -362,8 +362,8 @@ void AOculusXRMR_CastingCameraActor::Tick(float DeltaTime)
 
 			if (IsVulkanPlatform(GMaxRHIShaderPlatform))
 			{
-				ExecuteOnRenderThread([this, EncodeIndex, &BackgroundTexture, &ForegroundTexture]() {
-					ExecuteOnRHIThread([this, EncodeIndex, &BackgroundTexture, &ForegroundTexture]() {
+				OculusXRHMD::RunOnRenderingThreadAndWait([this, EncodeIndex, &BackgroundTexture, &ForegroundTexture](FRHICommandListImmediate& RHICmdList) {
+					OculusXRHMD::RunOnRHIThreadAndWait(RHICmdList, [this, EncodeIndex, &BackgroundTexture, &ForegroundTexture](FRHICommandListImmediate& RHICmdList) {
 						// The Vulkan RHI's implementation of GetNativeResource is different and returns the VkImage cast
 						// as a void* instead of a pointer to the VkImage, so we need this workaround
 						BackgroundTexture = (void*)BackgroundRenderTargets[EncodeIndex]->GetResource()->TextureRHI->GetNativeResource();
@@ -373,8 +373,8 @@ void AOculusXRMR_CastingCameraActor::Tick(float DeltaTime)
 			}
 			else
 			{
-				ExecuteOnRenderThread([this, EncodeIndex, &BackgroundTexture, &ForegroundTexture]() {
-					ExecuteOnRHIThread([this, EncodeIndex, &BackgroundTexture, &ForegroundTexture]() {
+				OculusXRHMD::RunOnRenderingThreadAndWait([this, EncodeIndex, &BackgroundTexture, &ForegroundTexture](FRHICommandListImmediate& RHICmdList) {
+					OculusXRHMD::RunOnRHIThreadAndWait(RHICmdList, [this, EncodeIndex, &BackgroundTexture, &ForegroundTexture](FRHICommandListImmediate& RHICmdList) {
 						BackgroundTexture = *((void**)BackgroundRenderTargets[EncodeIndex]->GetResource()->TextureRHI->GetNativeResource());
 						ForegroundTexture = *((void**)ForegroundRenderTargets[EncodeIndex]->GetResource()->TextureRHI->GetNativeResource());
 					});

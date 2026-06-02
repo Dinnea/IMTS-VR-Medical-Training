@@ -2,14 +2,11 @@
 
 #pragma once
 
-#include <functional>
-#include <mutex>
-
-#include "khronos/openxr/openxr.h"
 #include "IOpenXRExtensionPlugin.h"
 #include "OculusXRHMDTypes.h"
 #include "Shader.h"
 #include "Misc/EngineVersionComparison.h"
+#include "khronos/openxr/openxr.h"
 
 class FMRUKOpenXrExtensionPlugin : public IOpenXRExtensionPlugin
 {

@@ -49,7 +49,9 @@ int32 FOculusXROSVersionHelpers::GetOSVersion()
 	}
 
 	VerStr.MidInline(FirstPeriod + 1, LastPeriod - FirstPeriod - 1, EAllowShrinking::No);
-	return FCString::Atoi(*VerStr) - OSVersionOffset;
+	const int32 PluginVersion = FCString::Atoi(*VerStr);
+	// Starting from v200, OS and plugin versions are the same
+	return PluginVersion >= 200 ? PluginVersion : PluginVersion - OSVersionOffset;
 #else
 	return 0;
 #endif // WITH_EDITOR

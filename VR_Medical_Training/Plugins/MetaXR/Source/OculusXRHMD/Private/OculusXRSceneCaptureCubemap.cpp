@@ -3,6 +3,7 @@
 
 #include "OculusXRSceneCaptureCubemap.h"
 #include "OculusXRHMDPrivate.h"
+#include "OculusXRHMD.h"
 #include "IImageWrapper.h"
 #include "IImageWrapperModule.h"
 #include "Kismet/GameplayStatics.h"
@@ -14,7 +15,6 @@
 #include "TextureResource.h"
 #include "HAL/FileManager.h"
 #include "Misc/FileHelper.h"
-#include "XRThreadUtils.h"
 #include "RenderingThread.h"
 
 //-------------------------------------------------------------------------------------------------
@@ -103,7 +103,7 @@ void UOculusXRSceneCaptureCubemap::StartCapture(UWorld* World, uint32 InCaptureB
 void UOculusXRSceneCaptureCubemap::Tick(float DeltaTime)
 {
 #if UE_VERSION_OLDER_THAN(5, 7, 0)
-	ExecuteOnRenderThread([]() {
+	OculusXRHMD::RunOnRenderingThreadAndWait([](FRHICommandListImmediate& RHICmdList) {
 		TickRenderingTickables();
 	});
 #endif

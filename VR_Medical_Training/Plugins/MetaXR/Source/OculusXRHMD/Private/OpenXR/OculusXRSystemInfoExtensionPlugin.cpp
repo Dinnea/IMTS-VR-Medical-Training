@@ -11,6 +11,7 @@
 #include "OculusXRHMDTypes.h"
 #include "OculusXRTelemetry.h"
 #include "UObject/UObjectGlobals.h"
+#include "OculusXRHMDPrivate.h"
 
 #if WITH_EDITOR
 #include "Settings/LevelEditorPlaySettings.h"

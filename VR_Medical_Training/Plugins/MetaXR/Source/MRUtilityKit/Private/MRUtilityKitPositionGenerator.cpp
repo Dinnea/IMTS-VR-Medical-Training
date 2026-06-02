@@ -21,11 +21,14 @@ void AMRUtilityKitPositionGenerator::BeginPlay()
 	if (RunOnStart)
 	{
 		UMRUKSubsystem* Subsystem = GetGameInstance()->GetSubsystem<UMRUKSubsystem>();
-		if (Subsystem->SceneLoadStatus == EMRUKInitStatus::Complete)
+		if (Subsystem)
 		{
-			SceneLoaded(true);
+			if (Subsystem->SceneLoadStatus == EMRUKInitStatus::Complete)
+			{
+				SceneLoaded(true);
+			}
+			Subsystem->OnSceneLoaded.AddUniqueDynamic(this, &AMRUtilityKitPositionGenerator::SceneLoaded);
 		}
-		Subsystem->OnSceneLoaded.AddUniqueDynamic(this, &AMRUtilityKitPositionGenerator::SceneLoaded);
 	}
 }
 
@@ -33,7 +36,6 @@ bool AMRUtilityKitPositionGenerator::GenerateRandomPositionsOnSurface(TArray<FTr
 {
 	UMRUKSubsystem* Subsystem = GetGameInstance()->GetSubsystem<UMRUKSubsystem>();
 	bool bSuccess = true;
-	bool bAnyFailure = false;
 	switch (RandomSpawnSettings.RoomFilter)
 	{
 		case EMRUKRoomFilter::None:
@@ -50,10 +52,9 @@ bool AMRUtilityKitPositionGenerator::GenerateRandomPositionsOnSurface(TArray<FTr
 			{
 				if (!GenerateRandomPositionsOnSurfaceInRoom(Room, OutTransforms))
 				{
-					bAnyFailure = true;
+					bSuccess = false;
 				}
 			}
-			bSuccess = !bAnyFailure;
 			break;
 		}
 		default:;
@@ -64,19 +65,19 @@ bool AMRUtilityKitPositionGenerator::GenerateRandomPositionsOnSurface(TArray<FTr
 bool AMRUtilityKitPositionGenerator::GenerateRandomPositionsOnSurfaceInRoom(AMRUKRoom* Room, TArray<FTransform>& OutTransforms)
 {
 	bool bInitializedAnchor = IsValid(RandomSpawnSettings.ActorInstance);
-	if (bInitializedAnchor && RandomSpawnSettings.ActorClass != nullptr)
+	if (bInitializedAnchor && RandomSpawnSettings.ActorClass)
 	{
 		UE_LOG(LogMRUK, Error, TEXT("Cannot use an initialized Actor AND a defined ActorClass together. Use one of the options"));
 		return false;
 	}
-	if (!bInitializedAnchor && RandomSpawnSettings.ActorClass == nullptr)
+	if (!bInitializedAnchor && !RandomSpawnSettings.ActorClass)
 	{
 		UE_LOG(LogMRUK, Error, TEXT("Please define ActorClass."));
 		return false;
 	}
 
 	UMRUKSubsystem* Subsystem = GetGameInstance()->GetSubsystem<UMRUKSubsystem>();
-	FBox Bounds = bInitializedAnchor ? RandomSpawnSettings.ActorInstance->CalculateComponentsBoundingBoxInLocalSpace() : Subsystem->GetActorClassBounds(RandomSpawnSettings.ActorClass);
+	const FBox Bounds = bInitializedAnchor ? RandomSpawnSettings.ActorInstance->CalculateComponentsBoundingBoxInLocalSpace() : Subsystem->GetActorClassBounds(RandomSpawnSettings.ActorClass);
 
 	float MinRadius = 0.0f;
 	float CenterOffset = (Bounds.GetCenter().Z != 0) ? Bounds.GetCenter().Z : 0.0f;
@@ -125,8 +126,8 @@ bool AMRUtilityKitPositionGenerator::GenerateRandomPositionsOnSurfaceInRoom(AMRU
 			if (RandomSpawnSettings.SpawnLocations == EMRUKSpawnLocation::Floating)
 			{
 				FVector OutPos;
-				const bool bRandomPos = Room->GenerateRandomPositionInRoom(OutPos, MinRadius, true);
-				if (!bRandomPos)
+				const bool bFoundRandomPos = Room->GenerateRandomPositionInRoom(OutPos, MinRadius, true);
+				if (!bFoundRandomPos)
 				{
 					break;
 				}
@@ -151,7 +152,7 @@ bool AMRUtilityKitPositionGenerator::GenerateRandomPositionsOnSurfaceInRoom(AMRU
 					{
 						continue;
 					}
-					FMRUKHit Hit{};
+					FMRUKHit Hit;
 					if (Room->Raycast(SpawnPosition, Normal, RandomSpawnSettings.SurfaceClearanceDistance, RandomSpawnSettings.Labels, Hit))
 					{
 						continue;
@@ -168,12 +169,13 @@ bool AMRUtilityKitPositionGenerator::GenerateRandomPositionsOnSurfaceInRoom(AMRU
 
 			if (RandomSpawnSettings.CheckOverlaps && Bounds.IsValid && FoundSpawnPos)
 			{
-				FBox WorldBounds(AdjustedBounds.Min + SpawnPosition - AdjustedBounds.GetCenter(), AdjustedBounds.Max + SpawnPosition - AdjustedBounds.GetCenter());
+				const FBox WorldBounds(AdjustedBounds.Min + SpawnPosition - AdjustedBounds.GetCenter(), AdjustedBounds.Max + SpawnPosition - AdjustedBounds.GetCenter());
 
-				FVector AdjustedSpawnPos = SpawnPosition + SpawnRotation * AdjustedBounds.GetCenter();
+				const FVector AdjustedSpawnPos = SpawnPosition + SpawnRotation * AdjustedBounds.GetCenter();
 
 				// Check against world
-				if (!CanSpawnBox(GetTickableGameObjectWorld(), WorldBounds, AdjustedSpawnPos, SpawnRotation, FCollisionQueryParams::DefaultQueryParam, RandomSpawnSettings.CollisionChannel))
+				const FCollisionQueryParams& QueryParams = FCollisionQueryParams::DefaultQueryParam;
+				if (!CanSpawnBox(GetTickableGameObjectWorld(), WorldBounds, AdjustedSpawnPos, SpawnRotation, QueryParams, RandomSpawnSettings.CollisionChannel))
 				{
 					continue;
 				}
@@ -210,11 +212,11 @@ void AMRUtilityKitPositionGenerator::SceneLoaded(bool Success)
 			return;
 		}
 
-		if (RandomSpawnSettings.ActorClass != nullptr)
+		if (RandomSpawnSettings.ActorClass)
 		{
 			for (const FTransform& Transform : OutTransforms)
 			{
-				FActorSpawnParameters Params{};
+				FActorSpawnParameters Params;
 				Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 				GetWorld()->SpawnActor(RandomSpawnSettings.ActorClass, &Transform, Params);
 			}

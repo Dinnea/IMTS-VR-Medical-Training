@@ -231,6 +231,7 @@ bool OculusPluginWrapper::InitializeOculusPluginWrapper(OculusPluginWrapper* wra
 		OCULUS_BIND_ENTRY_POINT(GetHandState),
 		OCULUS_BIND_ENTRY_POINT(GetHandState2),
 		OCULUS_BIND_ENTRY_POINT(GetHandTrackingState),
+		OCULUS_BIND_ENTRY_POINT(GetHandPoseSourceInferred),
 		OCULUS_BIND_ENTRY_POINT(GetSkeleton2),
 		OCULUS_BIND_ENTRY_POINT(GetSkeleton3),
 		OCULUS_BIND_ENTRY_POINT(GetMesh),
@@ -415,6 +416,8 @@ bool OculusPluginWrapper::InitializeOculusPluginWrapper(OculusPluginWrapper* wra
 		OCULUS_BIND_ENTRY_POINT(SetControllerDrivenHandPosesAreNatural),
 		OCULUS_BIND_ENTRY_POINT(SetSimultaneousHandsAndControllersEnabled),
 		OCULUS_BIND_ENTRY_POINT(IsMultimodalHandsControllersSupported),
+		OCULUS_BIND_ENTRY_POINT(BeginProfilingRegion),
+		OCULUS_BIND_ENTRY_POINT(EndProfilingRegion),
 	};
 
 #undef OCULUS_BIND_ENTRY_POINT

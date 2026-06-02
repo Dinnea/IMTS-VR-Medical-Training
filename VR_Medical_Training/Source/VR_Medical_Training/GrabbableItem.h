@@ -38,7 +38,8 @@ public:
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex);
-	
+	void PlayImpactSFX(const FHitResult& Hit);
+
 	UPROPERTY(EditDefaultsOnly)
 	FName ObjectName;
 	
@@ -60,11 +61,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TObjectPtr<USoundCue> DropSound;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TObjectPtr<UAudioComponent> DropSFX;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<USoundCue> DropSFX;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UMaterialInstance> OutlineMaterial;
@@ -98,4 +96,7 @@ private:
 	TObjectPtr<ASpawnZone> SpawnZone;
 	
 	bool IsHeld;
+	
+	float SoundCooldownPeriod = 0.5;
+	float SoundCooldown = 0;
 };

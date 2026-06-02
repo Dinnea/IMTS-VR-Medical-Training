@@ -608,4 +608,26 @@ namespace OculusXRHMD
 		ensureMsgf(false, TEXT("UnregisterOpenXrEventHandler is only available with OvrPlugin"));
 	}
 
+	void FOculusXRFunctionLibraryOpenXR::BeginProfilingRegion(const FString& RegionName)
+	{
+		UE_LOG(LogHMD, Log, TEXT("BeginProfilingRegion: %s"), *RegionName);
+
+		OculusXR::FDebugUtilsExtensionPlugin& DebugUtilsPlugin = FOculusXRHMDModule::Get().GetExtensionPluginManager().GetDebugUtilsExtensionPlugin();
+		if (!DebugUtilsPlugin.BeginProfilingRegion(RegionName))
+		{
+			UE_LOG(LogHMD, Warning, TEXT("BeginProfilingRegion failed for region: %s"), *RegionName);
+		}
+	}
+
+	void FOculusXRFunctionLibraryOpenXR::EndProfilingRegion()
+	{
+		UE_LOG(LogHMD, Log, TEXT("EndProfilingRegion"));
+
+		OculusXR::FDebugUtilsExtensionPlugin& DebugUtilsPlugin = FOculusXRHMDModule::Get().GetExtensionPluginManager().GetDebugUtilsExtensionPlugin();
+		if (!DebugUtilsPlugin.EndProfilingRegion())
+		{
+			UE_LOG(LogHMD, Warning, TEXT("EndProfilingRegion failed"));
+		}
+	}
+
 } // namespace OculusXRHMD

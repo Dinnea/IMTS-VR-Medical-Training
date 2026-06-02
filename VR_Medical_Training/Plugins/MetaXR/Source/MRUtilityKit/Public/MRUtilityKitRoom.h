@@ -562,8 +562,8 @@ private:
 	void ComputeSeats();
 	void ComputeRoomEdges();
 
-	class UProceduralMeshComponent* GetOrCreateGlobalMeshProceduralMeshComponent(bool& OutExistedAlready) const;
-	void SetupGlobalMeshProceduralMeshComponent(UProceduralMeshComponent& ProcMeshComponent, bool ExistedAlready, UMaterialInterface* Material) const;
+	class UProceduralMeshComponent* GetOrCreateGlobalMeshProceduralMeshComponent(bool& bOutExistedAlready) const;
+	void SetupGlobalMeshProceduralMeshComponent(UProceduralMeshComponent& ProcMeshComponent, bool bExistedAlready, UMaterialInterface* Material) const;
 
 	/**
 	 * Get the list of walls in an order such that each one wall shares an edge with the next
@@ -581,7 +581,7 @@ private:
 	{
 		AMRUKAnchor* Anchor;
 		float UsableArea;
-		bool IsPlane;
+		bool bIsPlane;
 		FBox2D Bounds;
 		EMRUKBoxSide Side;
 	};

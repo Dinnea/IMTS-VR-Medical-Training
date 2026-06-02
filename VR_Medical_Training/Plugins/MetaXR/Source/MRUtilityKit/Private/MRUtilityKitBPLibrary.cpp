@@ -26,20 +26,20 @@ namespace
 		Normals.Init(FVector::ZeroVector, Vertices.Num());
 
 		// Iterate through each triangle
-		for (int32 TriIndex = 0; TriIndex < Triangles.Num(); TriIndex += 3)
+		for (int32 TriangleIndex = 0; TriangleIndex < Triangles.Num(); TriangleIndex += 3)
 		{
 			// Get the vertices of the triangle
-			FVector VertexA = Vertices[Triangles[TriIndex]];
-			FVector VertexB = Vertices[Triangles[TriIndex + 1]];
-			FVector VertexC = Vertices[Triangles[TriIndex + 2]];
+			const FVector VertexA = Vertices[Triangles[TriangleIndex]];
+			const FVector VertexB = Vertices[Triangles[TriangleIndex + 1]];
+			const FVector VertexC = Vertices[Triangles[TriangleIndex + 2]];
 
 			// Calculate the triangle's normal
 			const FVector TriangleNormal = FVector::CrossProduct(VertexC - VertexA, VertexB - VertexA).GetSafeNormal();
 
 			// Add the triangle's normal to each of its vertices' normals
-			Normals[Triangles[TriIndex]] += TriangleNormal;
-			Normals[Triangles[TriIndex + 1]] += TriangleNormal;
-			Normals[Triangles[TriIndex + 2]] += TriangleNormal;
+			Normals[Triangles[TriangleIndex]] += TriangleNormal;
+			Normals[Triangles[TriangleIndex + 1]] += TriangleNormal;
+			Normals[Triangles[TriangleIndex + 2]] += TriangleNormal;
 		}
 
 		// Normalize the vertex normals
@@ -66,9 +66,9 @@ namespace
 		Tangents.Init(FProcMeshTangent(0.f, 0.f, 0.f), Normals.Num());
 
 		// Iterate through each normal
-		for (int32 NormalIndex = 0; NormalIndex < Normals.Num(); NormalIndex++)
+		for (int32 VertexIndex = 0; VertexIndex < Normals.Num(); VertexIndex++)
 		{
-			const FVector& Normal = Normals[NormalIndex];
+			const FVector& Normal = Normals[VertexIndex];
 
 			// Calculate a tangent based on the normal
 			FVector TangentX = FVector(1.0f, 0.0f, 0.0f);
@@ -85,7 +85,7 @@ namespace
 			}
 
 			// Store the tangent in the array
-			Tangents[NormalIndex] = FProcMeshTangent(TangentX, false);
+			Tangents[VertexIndex] = FProcMeshTangent(TangentX, false);
 		}
 
 		return Tangents;
@@ -95,8 +95,8 @@ namespace
 	{
 		if (SceneComponent)
 		{
-			const auto RelativeRotation = SceneComponent->GetRelativeRotationCache().RotatorToQuat(SceneComponent->GetRelativeRotation());
-			const auto Rotation = AccumulatedRotation * RelativeRotation;
+			const FQuat RelativeRotation = SceneComponent->GetRelativeRotationCache().RotatorToQuat(SceneComponent->GetRelativeRotation());
+			const FQuat Rotation = AccumulatedRotation * RelativeRotation;
 			const FVector RotatedXAxis = Rotation.GetAxisX();
 			const FVector RotatedYAxis = Rotation.GetAxisY();
 			const FVector RotatedZAxis = Rotation.GetAxisZ();
@@ -144,7 +144,7 @@ namespace
 			const FVector NewScale = ParentReciprocalScale * RotatedScale * OldScale;
 			SceneComponent->SetRelativeScale3D(NewScale);
 			const FVector NewParentReciprocalScale = ParentReciprocalScale * (OldScale / NewScale);
-			for (auto Child : SceneComponent->GetAttachChildren())
+			for (USceneComponent* Child : SceneComponent->GetAttachChildren())
 			{
 				if (Child)
 				{
@@ -161,8 +161,13 @@ UMRUKLoadFromDevice* UMRUKLoadFromDevice::LoadSceneFromDeviceAsync(const UObject
 {
 	// We must have a valid contextual world for this action, so we don't even make it
 	// unless we can resolve the UWorld from WorldContext.
-	UWorld* World = GEngine->GetWorldFromContextObject(WorldContext, EGetWorldErrorMode::ReturnNull);
 	if (!ensureAlwaysMsgf(IsValid(WorldContext), TEXT("World Context was not valid.")))
+	{
+		return nullptr;
+	}
+
+	UWorld* World = GEngine->GetWorldFromContextObject(WorldContext, EGetWorldErrorMode::ReturnNull);
+	if (!ensureAlwaysMsgf(IsValid(World), TEXT("World was not valid.")))
 	{
 		return nullptr;
 	}
@@ -177,7 +182,7 @@ UMRUKLoadFromDevice* UMRUKLoadFromDevice::LoadSceneFromDeviceAsync(const UObject
 
 void UMRUKLoadFromDevice::Activate()
 {
-	const auto Subsystem = World->GetGameInstance()->GetSubsystem<UMRUKSubsystem>();
+	UMRUKSubsystem* Subsystem = World->GetGameInstance()->GetSubsystem<UMRUKSubsystem>();
 	Subsystem->OnSceneLoaded.AddDynamic(this, &UMRUKLoadFromDevice::OnSceneLoaded);
 
 	{
@@ -192,7 +197,7 @@ void UMRUKLoadFromDevice::OnSceneLoaded(bool Succeeded)
 		UE_LOG(LogMRUK, Warning, TEXT("World is not valid anymore. Can not fire on scene loaded events"));
 		return;
 	}
-	const auto Subsystem = World->GetGameInstance()->GetSubsystem<UMRUKSubsystem>();
+	UMRUKSubsystem* Subsystem = World->GetGameInstance()->GetSubsystem<UMRUKSubsystem>();
 	Subsystem->OnSceneLoaded.RemoveDynamic(this, &UMRUKLoadFromDevice::OnSceneLoaded);
 	if (Succeeded)
 	{
@@ -205,12 +210,65 @@ void UMRUKLoadFromDevice::OnSceneLoaded(bool Succeeded)
 	SetReadyToDestroy();
 }
 
+UMRUKConfigureTrackables* UMRUKConfigureTrackables::ConfigureTrackablesAsync(const UObject* WorldContext, const FMRUKTrackerConfiguration& Configuration)
+{
+	if (!ensureAlwaysMsgf(IsValid(WorldContext), TEXT("World Context was not valid.")))
+	{
+		return nullptr;
+	}
+
+	UWorld* World = GEngine->GetWorldFromContextObject(WorldContext, EGetWorldErrorMode::ReturnNull);
+	if (!ensureAlwaysMsgf(IsValid(World), TEXT("World was not valid.")))
+	{
+		return nullptr;
+	}
+
+	UMRUKConfigureTrackables* NewAction = NewObject<UMRUKConfigureTrackables>();
+	NewAction->World = World;
+	NewAction->TrackerConfiguration = Configuration;
+	NewAction->RegisterWithGameInstance(World->GetGameInstance());
+	return NewAction;
+}
+
+void UMRUKConfigureTrackables::OnTrackablesConfigured(bool Succeeded)
+{
+	if (!World.IsValid())
+	{
+		UE_LOG(LogMRUK, Warning, TEXT("World is not valid anymore. Can not fire on trackables configured event"));
+		return;
+	}
+	UMRUKSubsystem* Subsystem = World->GetGameInstance()->GetSubsystem<UMRUKSubsystem>();
+	Subsystem->OnTrackablesConfigured.RemoveDynamic(this, &UMRUKConfigureTrackables::OnTrackablesConfigured);
+	if (Succeeded)
+	{
+		Success.Broadcast();
+	}
+	else
+	{
+		Failure.Broadcast();
+	}
+	SetReadyToDestroy();
+}
+
+void UMRUKConfigureTrackables::Activate()
+{
+	UMRUKSubsystem* Subsystem = World->GetGameInstance()->GetSubsystem<UMRUKSubsystem>();
+	Subsystem->OnTrackablesConfigured.AddDynamic(this, &UMRUKConfigureTrackables::OnTrackablesConfigured);
+	Subsystem->ConfigureTrackers(TrackerConfiguration);
+}
+
 UMRUKLoadFromJson* UMRUKLoadFromJson::LoadSceneFromJsonAsync(const UObject* WorldContext, const FString& JsonString, EMRUKSceneModel SceneModel)
 {
 	// We must have a valid contextual world for this action, so we don't even make it
 	// unless we can resolve the UWorld from WorldContext.
-	UWorld* World = GEngine->GetWorldFromContextObject(WorldContext, EGetWorldErrorMode::ReturnNull);
+
 	if (!ensureAlwaysMsgf(IsValid(WorldContext), TEXT("World Context was not valid.")))
+	{
+		return nullptr;
+	}
+
+	UWorld* World = GEngine->GetWorldFromContextObject(WorldContext, EGetWorldErrorMode::ReturnNull);
+	if (!ensureAlwaysMsgf(IsValid(World), TEXT("World was not valid.")))
 	{
 		return nullptr;
 	}
@@ -226,7 +284,7 @@ UMRUKLoadFromJson* UMRUKLoadFromJson::LoadSceneFromJsonAsync(const UObject* Worl
 
 void UMRUKLoadFromJson::Activate()
 {
-	const auto Subsystem = World->GetGameInstance()->GetSubsystem<UMRUKSubsystem>();
+	UMRUKSubsystem* Subsystem = World->GetGameInstance()->GetSubsystem<UMRUKSubsystem>();
 	Subsystem->OnSceneLoaded.AddDynamic(this, &UMRUKLoadFromJson::OnSceneLoaded);
 	Subsystem->LoadSceneFromJsonString(Json, SceneModel);
 }
@@ -238,7 +296,7 @@ void UMRUKLoadFromJson::OnSceneLoaded(bool Succeeded)
 		UE_LOG(LogMRUK, Warning, TEXT("World is not valid anymore. Can not fire on scene loaded events"));
 		return;
 	}
-	const auto Subsystem = World->GetGameInstance()->GetSubsystem<UMRUKSubsystem>();
+	UMRUKSubsystem* Subsystem = World->GetGameInstance()->GetSubsystem<UMRUKSubsystem>();
 	Subsystem->OnSceneLoaded.RemoveDynamic(this, &UMRUKLoadFromJson::OnSceneLoaded);
 	if (Succeeded)
 	{
@@ -261,7 +319,7 @@ bool UMRUKBPLibrary::LoadGlobalMeshFromDevice(FOculusXRUInt64 SpaceHandle, UProc
 		return false;
 	}
 
-	const auto RoomLayoutManager = World->GetGameInstance()->GetSubsystem<UMRUKSubsystem>()->GetRoomLayoutManager();
+	UOculusXRRoomLayoutManagerComponent* RoomLayoutManager = World->GetGameInstance()->GetSubsystem<UMRUKSubsystem>()->GetRoomLayoutManager();
 	const bool LoadResult = RoomLayoutManager->LoadTriangleMesh(SpaceHandle.Value, OutProceduralMesh, LoadCollision);
 	if (!LoadResult)
 	{
@@ -324,12 +382,12 @@ FVector2D UMRUKBPLibrary::ComputeCentroid(const TArray<FVector2D>& PolygonPoints
 	}
 
 	double SignedArea = 0.0;
-	for (int32 PointIndex = 0; PointIndex < PolygonPoints.Num(); ++PointIndex)
+	for (int32 VertexIndex = 0; VertexIndex < PolygonPoints.Num(); ++VertexIndex)
 	{
-		const double X0 = PolygonPoints[PointIndex].X;
-		const double Y0 = PolygonPoints[PointIndex].Y;
-		const double X1 = PolygonPoints[(PointIndex + 1) % PolygonPoints.Num()].X;
-		const double Y1 = PolygonPoints[(PointIndex + 1) % PolygonPoints.Num()].Y;
+		const double X0 = PolygonPoints[VertexIndex].X;
+		const double Y0 = PolygonPoints[VertexIndex].Y;
+		const double X1 = PolygonPoints[(VertexIndex + 1) % PolygonPoints.Num()].X;
+		const double Y1 = PolygonPoints[(VertexIndex + 1) % PolygonPoints.Num()].Y;
 
 		const double A = X0 * Y1 - X1 * Y0;
 		SignedArea += A;
@@ -351,16 +409,16 @@ FVector UMRUKBPLibrary::ComputeDirectionAwayFromClosestWall(const AMRUKAnchor* A
 	double ClosestWallDistance = DBL_MAX;
 	FVector AwayFromWall{};
 
-	for (int32 AxisIndex = 0; AxisIndex < 4; ++AxisIndex)
+	for (int32 CardinalAxisIndex = 0; CardinalAxisIndex < 4; ++CardinalAxisIndex)
 	{
-		if (ExcludedAxes.Contains(AxisIndex))
+		if (ExcludedAxes.Contains(CardinalAxisIndex))
 		{
 			continue;
 		}
 		// Shoot a ray along the cardinal directions
 		// The "Up" (i.e. Z axis) for anchors typically points away from the facing direction, but it depends
 		// entirely on how the user defined the volume in scene capture.
-		const FVector CardinalAxis = (FQuat::MakeFromEuler({ 0.0, 0.0, 90.0 * AxisIndex }).RotateVector(Anchor->GetActorUpVector()));
+		const FVector CardinalAxis = (FQuat::MakeFromEuler({ 0.0, 0.0, 90.0 * CardinalAxisIndex }).RotateVector(Anchor->GetActorUpVector()));
 
 		for (const auto& WallAnchor : Anchor->Room->WallAnchors)
 		{
@@ -378,7 +436,7 @@ FVector UMRUKBPLibrary::ComputeDirectionAwayFromClosestWall(const AMRUKAnchor* A
 			{
 				ClosestWallDistance = DistToWall;
 				AwayFromWall = -CardinalAxis;
-				OutCardinalAxisIndex = AxisIndex;
+				OutCardinalAxisIndex = CardinalAxisIndex;
 			}
 		}
 	}
@@ -442,7 +500,7 @@ void UMRUKBPLibrary::CreateMeshSegmentation(const TArray<FVector>& MeshPositions
 	}
 
 	MRUKShared::Mesh3f* MeshSegmentsF = nullptr;
-	uint32_t MeshSegmentsCount = 0;
+	uint32 MeshSegmentsCount = 0;
 
 	MRUKShared::Mesh3f ReservedMeshSegmentF{};
 
@@ -454,9 +512,9 @@ void UMRUKBPLibrary::CreateMeshSegmentation(const TArray<FVector>& MeshPositions
 		&MeshSegmentsCount, &ReservedMeshSegmentF);
 
 	OutSegments.Reserve(MeshSegmentsCount);
-	for (uint32_t SegmentIndex = 0; SegmentIndex < MeshSegmentsCount; ++SegmentIndex)
+	for (uint32 MeshSegmentIndex = 0; MeshSegmentIndex < MeshSegmentsCount; ++MeshSegmentIndex)
 	{
-		const MRUKShared::Mesh3f& SegmentF = MeshSegmentsF[SegmentIndex];
+		const MRUKShared::Mesh3f& SegmentF = MeshSegmentsF[MeshSegmentIndex];
 		if (SegmentF.numIndices == 0)
 		{
 			continue;
@@ -465,11 +523,11 @@ void UMRUKBPLibrary::CreateMeshSegmentation(const TArray<FVector>& MeshPositions
 		FMRUKMeshSegment MeshSegment{};
 		MeshSegment.Indices.Reserve(SegmentF.numIndices);
 		MeshSegment.Positions.Reserve(SegmentF.numVertices);
-		for (uint32_t IndexIndex = 0; IndexIndex < SegmentF.numIndices; ++IndexIndex)
+		for (uint32 TriangleIndex = 0; TriangleIndex < SegmentF.numIndices; ++TriangleIndex)
 		{
-			MeshSegment.Indices.Add(SegmentF.indices[IndexIndex]);
+			MeshSegment.Indices.Add(SegmentF.indices[TriangleIndex]);
 		}
-		for (uint32_t VertexIndex = 0; VertexIndex < SegmentF.numVertices; ++VertexIndex)
+		for (uint32 VertexIndex = 0; VertexIndex < SegmentF.numVertices; ++VertexIndex)
 		{
 			const FVector3f& V = SegmentF.vertices[VertexIndex];
 			MeshSegment.Positions.Add({ V.X, V.Y, V.Z });
@@ -482,11 +540,11 @@ void UMRUKBPLibrary::CreateMeshSegmentation(const TArray<FVector>& MeshPositions
 	{
 		OutReservedSegment.Indices.Reserve(ReservedMeshSegmentF.numIndices);
 		OutReservedSegment.Positions.Reserve(ReservedMeshSegmentF.numVertices);
-		for (uint32_t IndexIndex = 0; IndexIndex < ReservedMeshSegmentF.numIndices; ++IndexIndex)
+		for (uint32 TriangleIndex = 0; TriangleIndex < ReservedMeshSegmentF.numIndices; ++TriangleIndex)
 		{
-			OutReservedSegment.Indices.Add(ReservedMeshSegmentF.indices[IndexIndex]);
+			OutReservedSegment.Indices.Add(ReservedMeshSegmentF.indices[TriangleIndex]);
 		}
-		for (uint32_t VertexIndex = 0; VertexIndex < ReservedMeshSegmentF.numVertices; ++VertexIndex)
+		for (uint32 VertexIndex = 0; VertexIndex < ReservedMeshSegmentF.numVertices; ++VertexIndex)
 		{
 			const FVector3f& V = ReservedMeshSegmentF.vertices[VertexIndex];
 			OutReservedSegment.Positions.Add({ V.X, V.Y, V.Z });

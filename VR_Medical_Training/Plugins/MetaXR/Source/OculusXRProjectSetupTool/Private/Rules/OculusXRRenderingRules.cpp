@@ -172,7 +172,9 @@ namespace OculusXRRenderingRules
 
 	void FEnableMobileUniformLocalLightsRule::ApplyImpl(bool& OutShouldRestartEditor)
 	{
-		if (GetMutableDefault<URendererSettings>()->bMobileSupportGPUScene)
+		static const auto GpuSceneCVar = IConsoleManager::Get().FindTConsoleVariableDataInt(TEXT("r.Mobile.SupportGPUScene"));
+		const bool bMobileSupportGPUScene = GpuSceneCVar && GpuSceneCVar->GetValueOnAnyThread();
+		if (bMobileSupportGPUScene)
 		{
 			UE_LOG(LogTemp, Error, TEXT("Failed to enable MobileUniformLocalLights because MobileUniformLocalLights is incompatible with GPUScene."));
 			return;
@@ -189,7 +191,9 @@ namespace OculusXRRenderingRules
 
 	void FEnableEmulatedUniformBuffersRule::ApplyImpl(bool& OutShouldRestartEditor)
 	{
-		if (GetMutableDefault<URendererSettings>()->bMobileSupportGPUScene)
+		static const auto GpuSceneCVar = IConsoleManager::Get().FindTConsoleVariableDataInt(TEXT("r.Mobile.SupportGPUScene"));
+		const bool bMobileSupportGPUScene = GpuSceneCVar && GpuSceneCVar->GetValueOnAnyThread();
+		if (bMobileSupportGPUScene)
 		{
 			UE_LOG(LogTemp, Error, TEXT("Failed to enable EmulatedUniformBuffers because EmulatedUniformBuffers is incompatible with GPUScene."));
 			return;
@@ -340,15 +344,17 @@ namespace OculusXRRenderingRules
 	bool FDisableMobileGPUSceneRule::IsApplied() const
 	{
 		const UOculusXRHMDRuntimeSettings* OculusXRSettings = GetMutableDefault<UOculusXRHMDRuntimeSettings>();
+		static const auto GpuSceneCVar = IConsoleManager::Get().FindTConsoleVariableDataInt(TEXT("r.Mobile.SupportGPUScene"));
+		const bool bMobileSupportGPUScene = GpuSceneCVar && GpuSceneCVar->GetValueOnAnyThread();
 		const URendererSettings* RenderSettings = GetMutableDefault<URendererSettings>();
 		// check if GPUScene conflicts with any existing features: EUB or ULL
-		return !((RenderSettings->bMobileSupportGPUScene && RenderSettings->bVulkanUseEmulatedUBs)
-			|| (RenderSettings->bMobileSupportGPUScene && RenderSettings->bMobileUniformLocalLights)
+		return !((bMobileSupportGPUScene && RenderSettings->bVulkanUseEmulatedUBs)
+			|| (bMobileSupportGPUScene && RenderSettings->bMobileUniformLocalLights)
 #if UE_VERSION_OLDER_THAN(5, 7, 0)
 			|| (RenderSettings->bMobileSupportGPUScene && RenderSettings->bMobileSupportSpaceWarp)
 #endif
-			|| (RenderSettings->bMobileSupportGPUScene && RenderSettings->bSupportsXRSoftOcclusions)
-			|| (RenderSettings->bMobileSupportGPUScene && OculusXRSettings->bLateLatching));
+			|| (bMobileSupportGPUScene && RenderSettings->bSupportsXRSoftOcclusions)
+			|| (bMobileSupportGPUScene && OculusXRSettings->bLateLatching));
 	}
 
 	void FDisableMobileGPUSceneRule::ApplyImpl(bool& OutShouldRestartEditor)
@@ -357,7 +363,8 @@ namespace OculusXRRenderingRules
 		UE_LOG(LogProjectSetupTool, Error, TEXT("Project build files define PROJECT_CVAR_MOBILE_SUPPORTS_GPUSCENE. You will need to modify your build files to change it."));
 		FMessageDialog::Open(EAppMsgType::Ok, NSLOCTEXT("OculusXRRenderingRules", "Rendering_MobileGPUScene_DefinedInBuild", "Project build files define PROJECT_CVAR_MOBILE_SUPPORTS_GPUSCENE. You will need to modify your build files to change it."));
 #else
-		OCULUSXR_UPDATE_SETTINGS(URendererSettings, bMobileSupportGPUScene, false);
+		GConfig->SetBool(TEXT("/Script/Engine.RendererSettings"), TEXT("r.Mobile.SupportGPUScene"), false, GEngineIni);
+		GConfig->Flush(false, GEngineIni);
 		OutShouldRestartEditor = true;
 #endif
 	}

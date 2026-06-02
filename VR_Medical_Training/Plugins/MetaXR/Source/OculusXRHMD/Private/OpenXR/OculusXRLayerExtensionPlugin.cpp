@@ -12,7 +12,6 @@
 #include "OculusXROpenXRUtilities.h"
 #include "OculusXRXRFunctions.h"
 #include "OpenXRCore.h"
-#include "XRThreadUtils.h"
 #include "OculusXRHMD_Layer.h"
 #include "OculusXRResourceHolder.h"
 #include "Materials/Material.h"
@@ -97,7 +96,7 @@ namespace OculusXR
 		const UOculusXRHMDRuntimeSettings* HMDSettings = GetDefault<UOculusXRHMDRuntimeSettings>();
 		if (HMDSettings != nullptr)
 		{
-#if defined(WITH_OCULUS_BRANCH) || defined(WITH_OPENXR_BRANCH)
+#if defined(WITH_OCULUS_BRANCH) || defined(WITH_OPENXR_BRANCH) || !UE_VERSION_OLDER_THAN(5, 7, 0)
 			bPixelDensityAdaptive = HMDSettings->bDynamicResolution && bRecommendedResolutionExtensionAvailable;
 #endif
 

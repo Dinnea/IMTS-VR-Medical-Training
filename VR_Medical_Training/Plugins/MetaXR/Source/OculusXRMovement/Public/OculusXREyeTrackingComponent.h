@@ -38,7 +38,7 @@ public:
 	/**
 	 * Reset the rotation values of the eyes to their initial rotation
 	 */
-	UFUNCTION(BlueprintCallable, Category = "Oculus|Movement")
+	UFUNCTION(BlueprintCallable, Category = "OculusXR|Movement")
 	void ClearRotationValues();
 
 	/**

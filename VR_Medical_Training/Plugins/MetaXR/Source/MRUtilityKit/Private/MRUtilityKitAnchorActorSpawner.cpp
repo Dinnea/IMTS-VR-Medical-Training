@@ -10,7 +10,7 @@
 
 #include "Engine/GameInstance.h"
 
-const FName GMrukProceduralAnchorMeshTag = TEXT("MRUKProceduralAnchorMesh");
+const FName GMRUK_PROCEDURAL_ANCHOR_MESH_TAG = TEXT("MRUKProceduralAnchorMesh");
 
 namespace
 {
@@ -18,7 +18,7 @@ namespace
 	{
 		AActor* Actor = Anchor->GetWorld()->SpawnActor<AActor>();
 		Actor->SetOwner(Anchor);
-		Actor->Tags.AddUnique(GMrukProceduralAnchorMeshTag);
+		Actor->Tags.AddUnique(GMRUK_PROCEDURAL_ANCHOR_MESH_TAG);
 		Actor->SetRootComponent(NewObject<USceneComponent>(Actor, TEXT("Root")));
 		Actor->GetRootComponent()->SetMobility(EComponentMobility::Movable);
 		Actor->AttachToComponent(Anchor->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
@@ -123,11 +123,17 @@ bool AMRUKAnchorActorSpawner::ShouldAnchorFallbackToProceduralMesh(const FMRUKSp
 	switch (SpawnGroup.FallbackToProcedural)
 	{
 		case EMRUKFallbackToProceduralOverwrite::Default:
+		{
 			return ShouldFallbackToProcedural;
+		}
 		case EMRUKFallbackToProceduralOverwrite::Fallback:
+		{
 			return true;
+		}
 		case EMRUKFallbackToProceduralOverwrite::NoFallback:
+		{
 			return false;
+		}
 	}
 	return false;
 }
@@ -233,9 +239,9 @@ TArray<AActor*> AMRUKAnchorActorSpawner::SpawnProceduralMeshesInRoom(AMRUKRoom* 
 		Actors.Append(WallActors);
 	}
 
-	TArray<AActor*> FloorActors = SpawnProceduralMeshOnFloorIfNoFloorActorGiven(Room);
+	const TArray<AActor*> FloorActors = SpawnProceduralMeshOnFloorIfNoFloorActorGiven(Room);
 	Actors.Append(FloorActors);
-	TArray<AActor*> CeilingActors = SpawnProceduralMeshOnCeilingIfNoCeilingActorGiven(Room);
+	const TArray<AActor*> CeilingActors = SpawnProceduralMeshOnCeilingIfNoCeilingActorGiven(Room);
 	Actors.Append(CeilingActors);
 
 	for (AMRUKAnchor* Anchor : Room->AllAnchors)
@@ -262,14 +268,14 @@ bool AMRUKAnchorActorSpawner::SelectSpawnActorClosestSize(AMRUKAnchor* Anchor, c
 		return false;
 	}
 
-	int Index = 0;
+	int32 Index = 0;
 	if (SpawnGroup.Actors.Num() > 1)
 	{
 		if (Anchor->VolumeBounds.IsValid)
 		{
 			const double AnchorSize = FMath::Pow(Anchor->VolumeBounds.GetVolume(), 1.0 / 3.0);
 			double ClosestSizeDifference = UE_BIG_NUMBER;
-			for (int i = 0; i < SpawnGroup.Actors.Num(); ++i)
+			for (int32 i = 0; i < SpawnGroup.Actors.Num(); ++i)
 			{
 				const FMRUKSpawnActor& SpawnActor = SpawnGroup.Actors[i];
 				UMRUKSubsystem* Subsystem = GetGameInstance()->GetSubsystem<UMRUKSubsystem>();
@@ -297,7 +303,7 @@ bool AMRUKAnchorActorSpawner::SelectSpawnActorRandom(const FMRUKSpawnGroup& Spaw
 	{
 		return false;
 	}
-	const int Index = RandomStream.RandRange(0, SpawnGroup.Actors.Num() - 1);
+	const int32 Index = RandomStream.RandRange(0, SpawnGroup.Actors.Num() - 1);
 	OutSpawnActor = SpawnGroup.Actors[Index];
 	return true;
 }
@@ -343,7 +349,7 @@ void AMRUKAnchorActorSpawner::AttachAndFitActorToAnchor(AMRUKAnchor* Anchor, AAc
 
 	if (Anchor->VolumeBounds.IsValid)
 	{
-		int CardinalAxisIndex = 0;
+		int32 CardinalAxisIndex = 0;
 		if (bCalculateFacingDirection && !bMatchAspectRatio)
 		{
 			// Pick rotation that is pointing away from the closest wall
@@ -376,7 +382,7 @@ void AMRUKAnchorActorSpawner::AttachAndFitActorToAnchor(AMRUKAnchor* Anchor, AAc
 			}
 			if (bCalculateFacingDirection)
 			{
-				UMRUKBPLibrary::ComputeDirectionAwayFromClosestWall(Anchor, CardinalAxisIndex, FlipToMatchAspectRatio ? TArray<int>{ 0, 2 } : TArray<int>{ 1, 3 });
+				UMRUKBPLibrary::ComputeDirectionAwayFromClosestWall(Anchor, CardinalAxisIndex, FlipToMatchAspectRatio ? TArray<int32>{ 0, 2 } : TArray<int32>{ 1, 3 });
 			}
 			if (CardinalAxisIndex != 0)
 			{
@@ -389,20 +395,30 @@ void AMRUKAnchorActorSpawner::AttachAndFitActorToAnchor(AMRUKAnchor* Anchor, AAc
 		switch (ScalingMode)
 		{
 			case EMRUKSpawnerScalingMode::UniformScaling:
+			{
 				Scale.X = Scale.Y = Scale.Z = FMath::Min3(Scale.X, Scale.Y, Scale.Z);
 				break;
+			}
 			case EMRUKSpawnerScalingMode::UniformXYScale:
+			{
 				Scale.Y = Scale.Z = FMath::Min(Scale.Y, Scale.Z);
 				break;
+			}
 			case EMRUKSpawnerScalingMode::NoScaling:
+			{
 				Scale = FVector::OneVector;
 				break;
+			}
 			case EMRUKSpawnerScalingMode::Stretch:
+			{
 				// Nothing to do
 				break;
+			}
 			case EMRUKSpawnerScalingMode::Custom:
+			{
 				Scale = ComputeCustomScaling(Anchor, Actor, Scale);
 				break;
+			}
 		}
 
 		if (AlignMode == EMRUKAlignMode::Custom)
@@ -417,77 +433,93 @@ void AMRUKAnchorActorSpawner::AttachAndFitActorToAnchor(AMRUKAnchor* Anchor, AAc
 			switch (AlignMode)
 			{
 				case EMRUKAlignMode::CenterOnCenter:
+				{
 					ChildBase = FVector(0.5 * (ChildBounds.Min.X + ChildBounds.Max.X), 0.5 * (ChildBounds.Min.Y + ChildBounds.Max.Y), 0.5 * (ChildBounds.Min.Z + ChildBounds.Max.Z));
 					break;
-
+				}
 				case EMRUKAlignMode::TopOnTop:
 				case EMRUKAlignMode::TopOnBottom:
+				{
 					ChildBase = FVector(ChildBounds.Min.X, 0.5 * (ChildBounds.Min.Y + ChildBounds.Max.Y), 0.5 * (ChildBounds.Min.Z + ChildBounds.Max.Z));
 					break;
-
+				}
 				case EMRUKAlignMode::Default:
 				case EMRUKAlignMode::BottomOnBottom:
 				case EMRUKAlignMode::BottomOnTop:
+				{
 					ChildBase = FVector(ChildBounds.Max.X, 0.5 * (ChildBounds.Min.Y + ChildBounds.Max.Y), 0.5 * (ChildBounds.Min.Z + ChildBounds.Max.Z));
 					break;
-
+				}
 				case EMRUKAlignMode::LeftOnLeft:
 				case EMRUKAlignMode::LeftOnRight:
+				{
 					ChildBase = FVector(0.5 * (ChildBounds.Min.X + ChildBounds.Max.X), 0.5 * (ChildBounds.Min.Y + ChildBounds.Max.Y), ChildBounds.Max.Z);
 					break;
-
+				}
 				case EMRUKAlignMode::RightOnRight:
 				case EMRUKAlignMode::RightOnLeft:
+				{
 					ChildBase = FVector(0.5 * (ChildBounds.Min.X + ChildBounds.Max.X), 0.5 * (ChildBounds.Min.Y + ChildBounds.Max.Y), ChildBounds.Min.Z);
 					break;
-
+				}
 				case EMRUKAlignMode::FrontOnFront:
 				case EMRUKAlignMode::FrontOnBack:
+				{
 					ChildBase = FVector(0.5 * (ChildBounds.Min.X + ChildBounds.Max.X), ChildBounds.Max.Y, 0.5 * (ChildBounds.Min.Z + ChildBounds.Max.Z));
 					break;
-
+				}
 				case EMRUKAlignMode::BackOnBack:
 				case EMRUKAlignMode::BackOnFront:
+				{
 					ChildBase = FVector(0.5 * (ChildBounds.Min.X + ChildBounds.Max.X), ChildBounds.Min.Y, 0.5 * (ChildBounds.Min.Z + ChildBounds.Max.Z));
 					break;
+				}
 			}
 
 			switch (AlignMode)
 			{
 				case EMRUKAlignMode::CenterOnCenter:
+				{
 					VolumeBase = FVector(0.5 * (Anchor->VolumeBounds.Min.X + Anchor->VolumeBounds.Max.X), 0.5 * (Anchor->VolumeBounds.Min.Y + Anchor->VolumeBounds.Max.Y), 0.5 * (Anchor->VolumeBounds.Min.Z + Anchor->VolumeBounds.Max.Z));
 					break;
-
+				}
 				case EMRUKAlignMode::TopOnTop:
 				case EMRUKAlignMode::BottomOnTop:
+				{
 					VolumeBase = FVector(Anchor->VolumeBounds.Min.X, 0.5 * (Anchor->VolumeBounds.Min.Y + Anchor->VolumeBounds.Max.Y), 0.5 * (Anchor->VolumeBounds.Min.Z + Anchor->VolumeBounds.Max.Z));
 					break;
-
+				}
 				case EMRUKAlignMode::Default:
 				case EMRUKAlignMode::BottomOnBottom:
 				case EMRUKAlignMode::TopOnBottom:
+				{
 					VolumeBase = FVector(Anchor->VolumeBounds.Max.X, 0.5 * (Anchor->VolumeBounds.Min.Y + Anchor->VolumeBounds.Max.Y), 0.5 * (Anchor->VolumeBounds.Min.Z + Anchor->VolumeBounds.Max.Z));
 					break;
-
+				}
 				case EMRUKAlignMode::LeftOnLeft:
 				case EMRUKAlignMode::RightOnLeft:
+				{
 					VolumeBase = FVector(0.5 * (Anchor->VolumeBounds.Min.X + Anchor->VolumeBounds.Max.X), 0.5 * (Anchor->VolumeBounds.Min.Y + Anchor->VolumeBounds.Max.Y), Anchor->VolumeBounds.Max.Z);
 					break;
-
+				}
 				case EMRUKAlignMode::RightOnRight:
 				case EMRUKAlignMode::LeftOnRight:
+				{
 					VolumeBase = FVector(0.5 * (Anchor->VolumeBounds.Min.X + Anchor->VolumeBounds.Max.X), 0.5 * (Anchor->VolumeBounds.Min.Y + Anchor->VolumeBounds.Max.Y), Anchor->VolumeBounds.Min.Z);
 					break;
-
+				}
 				case EMRUKAlignMode::FrontOnFront:
 				case EMRUKAlignMode::BackOnFront:
+				{
 					VolumeBase = FVector(0.5 * (Anchor->VolumeBounds.Min.X + Anchor->VolumeBounds.Max.X), Anchor->VolumeBounds.Max.Y, 0.5 * (Anchor->VolumeBounds.Min.Z + Anchor->VolumeBounds.Max.Z));
 					break;
-
+				}
 				case EMRUKAlignMode::BackOnBack:
 				case EMRUKAlignMode::FrontOnBack:
+				{
 					VolumeBase = FVector(0.5 * (Anchor->VolumeBounds.Min.X + Anchor->VolumeBounds.Max.X), Anchor->VolumeBounds.Min.Y, 0.5 * (Anchor->VolumeBounds.Min.Z + Anchor->VolumeBounds.Max.Z));
 					break;
+				}
 			}
 			Offset = VolumeBase - ChildBase * Scale;
 		}
@@ -521,19 +553,27 @@ void AMRUKAnchorActorSpawner::AttachAndFitActorToAnchor(AMRUKAnchor* Anchor, AAc
 		{
 			case EMRUKSpawnerScalingMode::UniformScaling:
 			case EMRUKSpawnerScalingMode::UniformXYScale:
+			{
 				Scale2D.X = Scale2D.Y = FMath::Min(Scale2D.X, Scale2D.Y);
 				break;
+			}
 			case EMRUKSpawnerScalingMode::NoScaling:
+			{
 				Scale2D = FVector2D::UnitVector;
 				break;
+			}
 			case EMRUKSpawnerScalingMode::Stretch:
+			{
 				// Nothing to do
 				break;
+			}
 			case EMRUKSpawnerScalingMode::Custom:
+			{
 				const FVector S = ComputeCustomScaling(Anchor, Actor, FVector(Scale2D.X, Scale2D.Y, 0.0));
 				Scale2D.X = S.X;
 				Scale2D.Y = S.Y;
 				break;
+			}
 		}
 
 		FVector2D Offset2D = FVector2D::ZeroVector;
@@ -544,40 +584,62 @@ void AMRUKAnchorActorSpawner::AttachAndFitActorToAnchor(AMRUKAnchor* Anchor, AAc
 			case EMRUKAlignMode::FrontOnFront:
 			case EMRUKAlignMode::FrontOnBack:
 			case EMRUKAlignMode::BackOnFront:
+			{
 				Offset = FVector::ZeroVector;
 				break;
+			}
 			case EMRUKAlignMode::Default:
 			case EMRUKAlignMode::CenterOnCenter:
+			{
 				Offset2D = Anchor->PlaneBounds.GetCenter() - ChildBounds2D.GetCenter() * Scale2D;
 				break;
+			}
 			case EMRUKAlignMode::BottomOnBottom:
+			{
 				Offset2D = FVector2D(Anchor->PlaneBounds.GetCenter().X, Anchor->PlaneBounds.Min.Y) - FVector2D(ChildBounds2D.GetCenter().X, ChildBounds2D.Min.Y) * Scale2D;
 				break;
+			}
 			case EMRUKAlignMode::TopOnTop:
+			{
 				Offset2D = FVector2D(Anchor->PlaneBounds.GetCenter().X, Anchor->PlaneBounds.Max.Y) - FVector2D(ChildBounds2D.GetCenter().X, ChildBounds2D.Max.Y) * Scale2D;
 				break;
+			}
 			case EMRUKAlignMode::LeftOnLeft:
+			{
 				Offset2D = FVector2D(Anchor->PlaneBounds.Max.X, Anchor->PlaneBounds.GetCenter().Y) - FVector2D(ChildBounds2D.Max.X, ChildBounds2D.GetCenter().Y) * Scale2D;
 				break;
+			}
 			case EMRUKAlignMode::RightOnRight:
+			{
 				Offset2D = FVector2D(Anchor->PlaneBounds.Min.X, Anchor->PlaneBounds.GetCenter().Y) - FVector2D(ChildBounds2D.Min.X, ChildBounds2D.GetCenter().Y) * Scale2D;
 				break;
+			}
 			case EMRUKAlignMode::BottomOnTop:
+			{
 				Offset2D = FVector2D(Anchor->PlaneBounds.GetCenter().X, Anchor->PlaneBounds.Max.Y) - FVector2D(ChildBounds2D.GetCenter().X, ChildBounds2D.Min.Y) * Scale2D;
 				break;
+			}
 			case EMRUKAlignMode::TopOnBottom:
+			{
 				Offset2D = FVector2D(Anchor->PlaneBounds.GetCenter().X, Anchor->PlaneBounds.Min.Y) - FVector2D(ChildBounds2D.GetCenter().X, ChildBounds2D.Max.Y) * Scale2D;
 				break;
+			}
 			case EMRUKAlignMode::LeftOnRight:
+			{
 				Offset2D = FVector2D(Anchor->PlaneBounds.Min.X, Anchor->PlaneBounds.GetCenter().Y) - FVector2D(ChildBounds2D.Max.X, ChildBounds2D.GetCenter().Y) * Scale2D;
 				break;
+			}
 			case EMRUKAlignMode::RightOnLeft:
+			{
 				Offset2D = FVector2D(Anchor->PlaneBounds.Max.X, Anchor->PlaneBounds.GetCenter().Y) - FVector2D(ChildBounds2D.Min.X, ChildBounds2D.GetCenter().Y) * Scale2D;
 				break;
+			}
 			case EMRUKAlignMode::Custom:
+			{
 				Offset = ComputeCustomAlign(Anchor, Actor, FBox(FVector(ChildBounds2D.Min, 0.0), FVector(ChildBounds2D.Max, 0.0)), FVector(Scale2D.X, Scale2D.Y, 0.0));
 				Offset2D = FVector2D(Offset.X, Offset.Y);
 				break;
+			}
 		}
 
 		Offset = FVector(0.0, Offset2D.X, Offset2D.Y);
@@ -730,9 +792,9 @@ void AMRUKAnchorActorSpawner::SpawnActors(AMRUKRoom* Room)
 
 void AMRUKAnchorActorSpawner::GetSpawnedActorsByRoom(AMRUKRoom* Room, TArray<AActor*>& Actors)
 {
-	if (const TArray<AActor*>* A = SpawnedActors.Find(Room))
+	if (const TArray<AActor*>* FoundActors = SpawnedActors.Find(Room))
 	{
-		Actors.Append(*A);
+		Actors.Append(*FoundActors);
 	}
 }
 

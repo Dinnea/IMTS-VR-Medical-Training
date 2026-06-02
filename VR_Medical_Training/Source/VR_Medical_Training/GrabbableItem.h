@@ -8,7 +8,7 @@
 
 class ASpawnZone;
 class AVR_Hand_Tracked;
-
+class USoundCue;
 UCLASS(Blueprintable, BlueprintType)
 class VR_MEDICAL_TRAINING_API AGrabbableItem : public AActor
 {

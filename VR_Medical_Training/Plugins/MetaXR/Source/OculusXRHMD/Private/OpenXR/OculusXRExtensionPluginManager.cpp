@@ -10,6 +10,7 @@ namespace OculusXR
 		, XRSimulatorExtensionPlugin()
 		, GuardianExtensionPlugin()
 		, LayerExtensionPlugin()
+		, DebugUtilsExtensionPlugin()
 #ifdef WITH_OCULUS_BRANCH
 		, EnvironmentDepthExtensionPlugin()
 #endif
@@ -32,6 +33,7 @@ namespace OculusXR
 		SystemInfoExtensionPlugin.RegisterOpenXRExtensionPlugin();
 		GuardianExtensionPlugin.RegisterOpenXRExtensionPlugin();
 		LayerExtensionPlugin.RegisterOpenXRExtensionPlugin();
+		DebugUtilsExtensionPlugin.RegisterOpenXRExtensionPlugin();
 #ifdef WITH_OCULUS_BRANCH
 		EnvironmentDepthExtensionPlugin.RegisterOpenXRExtensionPlugin();
 #endif
@@ -59,6 +61,11 @@ namespace OculusXR
 	FLayerExtensionPlugin& FExtensionPluginManager::GetLayerExtensionPlugin()
 	{
 		return LayerExtensionPlugin;
+	}
+
+	FDebugUtilsExtensionPlugin& FExtensionPluginManager::GetDebugUtilsExtensionPlugin()
+	{
+		return DebugUtilsExtensionPlugin;
 	}
 
 #ifdef WITH_OCULUS_BRANCH

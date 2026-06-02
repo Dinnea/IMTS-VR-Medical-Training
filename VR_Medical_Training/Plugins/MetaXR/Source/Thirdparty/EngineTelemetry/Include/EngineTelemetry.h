@@ -94,7 +94,9 @@ ENGINE_TELEMETRY_API telemetryBool engineTelemetry_SendUnifiedEvent(
     const char* error_msg,
     optionalTelemetryBool is_internal_build,
     optionalTelemetryBool batch_mode,
-    unsigned long long machine_oculus_user_id);
+    unsigned long long machine_oculus_user_id,
+    optionalTelemetryBool is_runtime,
+    const char* event_status);
 
 ENGINE_TELEMETRY_API telemetryBool
 engineTelemetry_AddCustomMetadata(const char* metadataName, const char* metadataParam);
@@ -199,9 +201,18 @@ namespace EngineTelemetry {
 int Telemetry_CreateMetadataHandle();
 bool Telemetry_SetMetadata(const char* key, const char* value, int handle);
 bool Telemetry_SetMetadataInt(const char* key, int value, int handle);
+bool Telemetry_SetMetadataLong(const char* key, long long value, int handle);
 bool Telemetry_SetMetadataFloat(const char* key, float value, int handle);
 bool Telemetry_SetMetadataDouble(const char* key, double value, int handle);
 bool Telemetry_SetMetadataBool(const char* key, bool value, int handle);
+bool Telemetry_SetMetadataIntArray(const char* key, const int* values, int count, int handle);
+bool Telemetry_SetMetadataLongArray(
+    const char* key,
+    const long long* values,
+    int count,
+    int handle);
+bool Telemetry_SetMetadataDoubleArray(const char* key, const double* values, int count, int handle);
+bool Telemetry_SetMetadataStringArray(const char* key, const char** values, int count, int handle);
 std::optional<std::string> Telemetry_GetMetadata(int handle);
 bool Telemetry_ClearMetadata(int handle);
 

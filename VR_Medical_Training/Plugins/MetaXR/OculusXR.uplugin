@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.117.0",
+	"VersionName": "1.201.0",
 	"FriendlyName": "Meta XR",
 	"Description": "Support for Meta Quest headsets and controllers",
 	"Category": "Virtual Reality",
@@ -10,7 +10,7 @@
 	"DocsURL": "https://developer.oculus.com/documentation/unreal/latest/concepts/unreal-engine/",
 	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/8313d8d7e7cf4e03a33e79eb757bccba",
 	"SupportURL": "https://forums.oculusvr.com/developer",
-	"EngineVersion": "5.7.3",
+	"EngineVersion": "5.7.0",
 	"CanContainContent": true,
 	"Installed": true,
 	"SupportedTargetPlatforms": [

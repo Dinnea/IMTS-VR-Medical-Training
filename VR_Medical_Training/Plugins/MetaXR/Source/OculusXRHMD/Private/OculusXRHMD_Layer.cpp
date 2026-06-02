@@ -11,7 +11,6 @@
 #include "PostProcess/SceneRenderTargets.h"
 #include "HeadMountedDisplayTypes.h" // for LogHMD
 #include "OculusXRHMD.h"
-#include "XRThreadUtils.h"
 #include "Engine/RendererSettings.h"
 #include "Engine/Texture2D.h"
 #include "UObject/ConstructorHelpers.h"
@@ -42,7 +41,7 @@ namespace OculusXRHMD
 	{
 		if (IsInGameThread())
 		{
-			ExecuteOnRenderThread([OvrpLayerId = this->OvrpLayerId, DeferredDeletion = this->DeferredDeletion]() {
+			RunOnRenderingThreadAndWait([OvrpLayerId = this->OvrpLayerId, DeferredDeletion = this->DeferredDeletion](FRHICommandListImmediate& RHICmdList) {
 				DeferredDeletion->AddOVRPLayerToDeferredDeletionQueue(OvrpLayerId);
 			});
 		}
@@ -1372,7 +1371,7 @@ namespace OculusXRHMD
 			{
 				OvrpLayerSubmit.LayerSubmitFlags |= ovrpLayerSubmitFlag_SpaceWarp;
 				OvrpLayerSubmit.EyeFov.MotionVectorDepthFar = Frame->NearClippingPlane / 100.f;
-				OvrpLayerSubmit.EyeFov.MotionVectorDepthNear = std::numeric_limits<float>::infinity();;
+				OvrpLayerSubmit.EyeFov.MotionVectorDepthNear = INFINITY;
 				OvrpLayerSubmit.EyeFov.MotionVectorOffset = ovrpVector4f{ 0.0f, 0.0f, 0.0f, 0.0f };
 				OvrpLayerSubmit.EyeFov.MotionVectorScale = ovrpVector4f{ 1.0f, 1.0f, 1.0f, 1.0f };
 

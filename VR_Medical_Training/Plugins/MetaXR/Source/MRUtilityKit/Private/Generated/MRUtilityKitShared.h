@@ -19,13 +19,9 @@ struct MRUKShared
     static void FreeMRUKSharedLibrary();
 
     struct SceneAnchor;
-
     struct RoomAnchor;
-
     struct Trackable;
-
     struct Uuid;
-
     struct Posef;
 
     enum class RendererType
@@ -509,13 +505,10 @@ struct MRUKShared
     /// initial pose when it was created and the current pose.
     bool (*GetWorldLockOffset)(Posef* offset);
 
-    /// Add two vectors together. This is implemented as a test to ensure the native shared
-    /// library is working correctly.
-    ///
-    /// @param[in] a The first vector.
-    /// @param[in] b The second vector.
-    /// @return The sum of the two vectors.
-    FVector3f (*AddVectors)(FVector3f a, FVector3f b);
+    /// Clear saved room and floor anchor poses from local storage.
+    /// This will remove all persisted pose data that was saved for world locking.
+    void (*ClearSavedRoomPoses)();
+
 
     /// Triangulate a polygon with holes, any winding order works. The first polyline defines the main
     /// polygon. Following polylines define holes. This function will allocate memory for the vertices
@@ -743,7 +736,8 @@ private:
         SetCustomWorldLockAnchor = reinterpret_cast<decltype(SetCustomWorldLockAnchor)>(LoadFunction(TEXT("SetCustomWorldLockAnchor")));
         ErasePersistedWorldLockAnchor = reinterpret_cast<decltype(ErasePersistedWorldLockAnchor)>(LoadFunction(TEXT("ErasePersistedWorldLockAnchor")));
         GetWorldLockOffset = reinterpret_cast<decltype(GetWorldLockOffset)>(LoadFunction(TEXT("GetWorldLockOffset")));
-        AddVectors = reinterpret_cast<decltype(AddVectors)>(LoadFunction(TEXT("AddVectors")));
+        ClearSavedRoomPoses = reinterpret_cast<decltype(ClearSavedRoomPoses)>(LoadFunction(TEXT("ClearSavedRoomPoses")));
+
         TriangulatePolygon = reinterpret_cast<decltype(TriangulatePolygon)>(LoadFunction(TEXT("TriangulatePolygon")));
         FreeMesh = reinterpret_cast<decltype(FreeMesh)>(LoadFunction(TEXT("FreeMesh")));
         ComputeMeshSegmentation = reinterpret_cast<decltype(ComputeMeshSegmentation)>(LoadFunction(TEXT("ComputeMeshSegmentation")));
@@ -807,7 +801,8 @@ private:
         SetCustomWorldLockAnchor = nullptr;
         ErasePersistedWorldLockAnchor = nullptr;
         GetWorldLockOffset = nullptr;
-        AddVectors = nullptr;
+        ClearSavedRoomPoses = nullptr;
+
         TriangulatePolygon = nullptr;
         FreeMesh = nullptr;
         ComputeMeshSegmentation = nullptr;

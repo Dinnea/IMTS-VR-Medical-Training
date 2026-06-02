@@ -23,7 +23,6 @@
 #include "OpenXRHMD.h"
 #include "HardwareInfo.h"
 #include "ScreenRendering.h"
-#include "XRThreadUtils.h"
 #include "ScreenPass.h"
 #include "RenderResource.h"
 #include "Shader.h"
@@ -890,7 +889,7 @@ namespace OculusXR
 
 	bool FEnvironmentDepthExtensionPlugin::StopEnvironmentDepth()
 	{
-		ExecuteOnRenderThread_DoNotWait([this]() {
+		ENQUEUE_RENDER_COMMAND(FEnvironmentDepthExtensionPlugin_StopEnvironmentDepth)([this](FRHICommandListImmediate& RHICmdList) {
 			auto& EnvDepthPlugin = FOculusXRHMDModule::Get().GetExtensionPluginManager().GetEnvironmentDepthExtensionPlugin();
 			if (!EnvironmentDepthSwapchain.IsEmpty())
 			{
@@ -920,7 +919,11 @@ namespace OculusXR
 
 			FString TexName = FString::Printf(TEXT("%s (%d/%d)"), DebugName, TextureIndex, InTextures.Num());
 			TexRef->SetName(*TexName);
+#if UE_VERSION_OLDER_THAN(5, 7, 0)
 			RHIBindDebugLabelName(TexRef, *TexName);
+#else
+			RHICmdList.BindDebugLabelName(TexRef, *TexName);
+#endif
 
 			RHITextureSwapChain.Add(TexRef);
 		}

@@ -49,6 +49,35 @@ private:
 	EMRUKSceneModel SceneModel;
 };
 
+/**
+ * Configure trackables async.
+ */
+UCLASS()
+class MRUTILITYKIT_API UMRUKConfigureTrackables : public UBlueprintAsyncActionBase
+{
+	GENERATED_BODY()
+public:
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FMRUKTrackablesConfigured);
+
+	UFUNCTION(BlueprintCallable, Category = "MR Utility Kit", meta = (WorldContext = "WorldContext", BlueprintInternalUseOnly = "true"))
+	static UMRUKConfigureTrackables* ConfigureTrackablesAsync(const UObject* WorldContext, const FMRUKTrackerConfiguration& Configuration);
+
+	virtual void Activate() override;
+
+	UPROPERTY(BlueprintAssignable)
+	FMRUKTrackablesConfigured Success;
+
+	UPROPERTY(BlueprintAssignable)
+	FMRUKTrackablesConfigured Failure;
+
+private:
+	TWeakObjectPtr<UWorld> World = nullptr;
+	FMRUKTrackerConfiguration TrackerConfiguration;
+
+	UFUNCTION(CallInEditor)
+	void OnTrackablesConfigured(bool Succeeded);
+};
+
 UCLASS()
 class MRUTILITYKIT_API UMRUKLoadFromJson : public UBlueprintAsyncActionBase
 {

@@ -3,7 +3,7 @@
 #include "MRUtilityKitSharedHelper.h"
 #include "GameFramework/WorldSettings.h"
 
-#include <XRTrackingSystemBase.h>
+#include "XRTrackingSystemBase.h"
 
 MRUKShared::Uuid ToMrukShared(const FOculusXRUUID& Uuid)
 {
@@ -64,7 +64,9 @@ FBox3d ToUnreal(const UWorld* World, const MRUKShared::Volume& Volume)
 FBox2d ToUnreal(const UWorld* World, const MRUKShared::Plane& Plane)
 {
 	const float WorldToMeters = World ? World->GetWorldSettings()->WorldToMeters : 100.0f;
-	FBox2d Box(FVector2D{ Plane.x, Plane.y } * WorldToMeters, FVector2D{ Plane.x + Plane.width, Plane.y + Plane.height } * WorldToMeters);
+	FBox2d Box(
+		FVector2D{ Plane.x, Plane.y } * WorldToMeters,
+		FVector2D{ Plane.x + Plane.width, Plane.y + Plane.height } * WorldToMeters);
 	return Box;
 }
 
@@ -157,16 +159,18 @@ MRUKShared::LabelFilter ToMrukShared(const FMRUKLabelFilter LabelFilter)
 {
 	MRUKShared::LabelFilter Filter{};
 
-	for (int i = 0; i < LabelFilter.IncludedLabels.Num(); ++i)
+	for (int32 i = 0; i < LabelFilter.IncludedLabels.Num(); ++i)
 	{
 		Filter.includedLabelsSet = true;
-		Filter.includedLabels |= (uint32_t)MRUKShared::GetInstance()->StringToMrukLabel(TCHAR_TO_ANSI(*LabelFilter.IncludedLabels[i]));
+		Filter.includedLabels |= (uint32_t)MRUKShared::GetInstance()->StringToMrukLabel(
+			TCHAR_TO_ANSI(*LabelFilter.IncludedLabels[i]));
 	}
 
-	for (int i = 0; i < LabelFilter.ExcludedLabels.Num(); ++i)
+	for (int32 i = 0; i < LabelFilter.ExcludedLabels.Num(); ++i)
 	{
 		Filter.includedLabelsSet = true;
-		Filter.includedLabels &= ~(uint32_t)MRUKShared::GetInstance()->StringToMrukLabel(TCHAR_TO_ANSI(*LabelFilter.ExcludedLabels[i]));
+		Filter.includedLabels &= ~(uint32_t)MRUKShared::GetInstance()->StringToMrukLabel(
+			TCHAR_TO_ANSI(*LabelFilter.ExcludedLabels[i]));
 	}
 
 	Filter.surfaceType = ToMrukSharedSurfaceTypes(LabelFilter.ComponentTypes);
@@ -184,12 +188,12 @@ FVector3f UnitVectorToMrukShared(const FVector& UnitVector)
 	return FVector3f(UnitVector.Y, UnitVector.Z, -UnitVector.X);
 }
 
-FVector PositionToUnreal(const FVector3f& Position, float WorldToMeters)
+FVector PositionToUnreal(const FVector3f& Position, const float WorldToMeters)
 {
 	return UnitVectorToUnreal(Position) * WorldToMeters;
 }
 
-FVector3f PositionToMrukShared(const FVector& Position, float WorldToMeters)
+FVector3f PositionToMrukShared(const FVector& Position, const float WorldToMeters)
 {
 	return UnitVectorToMrukShared(Position) / WorldToMeters;
 }
@@ -201,15 +205,23 @@ FQuat ToUnreal(const MRUKShared::Quatf& Q)
 
 MRUKShared::Quatf ToMrukShared(const FQuat& Q)
 {
-	return MRUKShared::Quatf{ static_cast<float>(Q.Y), static_cast<float>(Q.Z), -static_cast<float>(Q.X), -static_cast<float>(Q.W) };
+	return MRUKShared::Quatf{
+		static_cast<float>(Q.Y),
+		static_cast<float>(Q.Z),
+		-static_cast<float>(Q.X),
+		-static_cast<float>(Q.W)
+	};
 }
 
-FTransform ToUnreal(const MRUKShared::Posef& Pose, float WorldToMeters)
+FTransform ToUnreal(const MRUKShared::Posef& Pose, const float WorldToMeters)
 {
 	return FTransform(ToUnreal(Pose.rotation), PositionToUnreal(Pose.position, WorldToMeters));
 }
 
-MRUKShared::Posef ToMrukShared(const FTransform& Transform, float WorldToMeters)
+MRUKShared::Posef ToMrukShared(const FTransform& Transform, const float WorldToMeters)
 {
-	return MRUKShared::Posef{ PositionToMrukShared(Transform.GetTranslation(), WorldToMeters), ToMrukShared(Transform.GetRotation()) };
+	return MRUKShared::Posef{
+		PositionToMrukShared(Transform.GetTranslation(), WorldToMeters),
+		ToMrukShared(Transform.GetRotation())
+	};
 }

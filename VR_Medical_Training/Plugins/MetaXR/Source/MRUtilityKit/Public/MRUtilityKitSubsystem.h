@@ -45,6 +45,10 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRoomCreated, AMRUKRoom*, Room);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRoomUpdated, AMRUKRoom*, Room);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRoomRemoved, AMRUKRoom*, Room);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTrackablesConfigured, bool, Success);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTrackableAdded, class AMRUKTrackable*, Trackable);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTrackableUpdated, class AMRUKTrackable*, Trackable);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTrackableRemoved, class AMRUKTrackable*, Trackable);
 
 	/**
 	 * The status of the scene loading. When loading from device this is an asynchronous process
@@ -78,6 +82,28 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "MR Utility Kit")
 	FOnRoomRemoved OnRoomRemoved;
 
+	UPROPERTY(BlueprintAssignable, Category = "MR Utility Kit")
+	FOnTrackablesConfigured OnTrackablesConfigured;
+
+	/**
+	 * An event that gets fired when a trackable is detected and localized.
+	 * Trackables are dynamic objects like keyboards and QR codes that can be tracked in the environment.
+	 */
+	UPROPERTY(BlueprintAssignable, Category = "MR Utility Kit")
+	FOnTrackableAdded OnTrackableAdded;
+
+	/**
+	 * An event that gets fired when a trackable's properties are updated.
+	 */
+	UPROPERTY(BlueprintAssignable, Category = "MR Utility Kit")
+	FOnTrackableUpdated OnTrackableUpdated;
+
+	/**
+	 * An event that gets fired when a trackable is no longer detected.
+	 */
+	UPROPERTY(BlueprintAssignable, Category = "MR Utility Kit")
+	FOnTrackableRemoved OnTrackableRemoved;
+
 	/**
 	 * An event that will trigger when the capture flow completed.
 	 * The Success parameter indicates whether the scene was captured successfully or not.
@@ -90,6 +116,12 @@ public:
 	 */
 	UPROPERTY(VisibleInstanceOnly, Transient, BlueprintReadOnly, Category = "MR Utility Kit")
 	TArray<TObjectPtr<AMRUKRoom>> Rooms;
+
+	/**
+	 * A list of trackables that have been discovered.
+	 */
+	UPROPERTY(VisibleInstanceOnly, Transient, BlueprintReadOnly, Category = "MR Utility Kit")
+	TMap<FMRUKTrackableKey, TObjectPtr<AMRUKTrackable>> Trackables;
 
 	/**
 	 * When world locking is enabled the position of the VR Pawn will be adjusted each frame to ensure
@@ -313,6 +345,19 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "MR Utility Kit")
 	FMRUKEnvironmentRaycastHit RaycastEnvironment(const FVector& Origin, const FVector& Direction, float MaxDistance = 0);
+
+	/**
+	 * Configure which types of trackables to track. This enables or disables keyboard and QR code tracking.
+	 * @param Configuration The tracker configuration specifying which types of trackables to enable.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "MR Utility Kit")
+	void ConfigureTrackers(const FMRUKTrackerConfiguration& Configuration);
+
+	/**
+	 * Disables and stops all trackers.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "MR Utility Kit")
+	void DisableTrackers();
 
 public:
 	void Initialize(FSubsystemCollectionBase& Collection) override;

@@ -909,17 +909,47 @@ OVRP_EXPORT ovrpResult ovrp_SendUnifiedEventV4( // For metadata handle support
     ovrpOptionalBool batch_mode,
     unsigned long long machine_oculus_user_id);
 
+OVRP_EXPORT ovrpResult ovrp_SendUnifiedEventV5( // For is_runtime and event_status support. event_status accepts: "SUCCESS", "FAIL", "CANCEL"
+    ovrpBool isEssential,
+    const char* productType,
+    const char* eventName,
+    int metadataHandle,
+    const char* project_name,
+    const char* event_entrypoint,
+    const char* project_guid,
+    const char* event_type,
+    const char* event_target,
+    const char* error_msg,
+    ovrpOptionalBool is_internal_build,
+    ovrpOptionalBool batch_mode,
+    unsigned long long machine_oculus_user_id,
+    ovrpOptionalBool is_runtime,
+    const char* event_status);
+
 OVRP_EXPORT ovrpResult ovrp_TelemetryCreateMetadataHandle(int* returnHandle);
 
 OVRP_EXPORT ovrpResult ovrp_TelemetrySetMetadata(const char* key, const char* value, int handle);
 
 OVRP_EXPORT ovrpResult ovrp_TelemetrySetMetadataInt(const char* key, int value, int handle);
 
+OVRP_EXPORT ovrpResult ovrp_TelemetrySetMetadataLong(const char* key, long long value, int handle);
+
 OVRP_EXPORT ovrpResult ovrp_TelemetrySetMetadataFloat(const char* key, float value, int handle);
 
 OVRP_EXPORT ovrpResult ovrp_TelemetrySetMetadataDouble(const char* key, double value, int handle);
 
 OVRP_EXPORT ovrpResult ovrp_TelemetrySetMetadataBool(const char* key, ovrpBool value, int handle);
+
+OVRP_EXPORT ovrpResult ovrp_TelemetrySetMetadataIntArray(const char* key, const int* values, int count, int handle);
+
+OVRP_EXPORT ovrpResult
+ovrp_TelemetrySetMetadataLongArray(const char* key, const long long* values, int count, int handle);
+
+OVRP_EXPORT ovrpResult
+ovrp_TelemetrySetMetadataDoubleArray(const char* key, const double* values, int count, int handle);
+
+OVRP_EXPORT ovrpResult
+ovrp_TelemetrySetMetadataStringArray(const char* key, const char** values, int count, int handle);
 
 OVRP_EXPORT ovrpResult ovrp_TelemetryGetMetadata(int handle, char* metadataJson, int bufferSize);
 
@@ -973,10 +1003,8 @@ OVRP_EXPORT ovrpResult ovrp_SetHandSkeletonVersion(ovrHandSkeletonVersion versio
 
 
 
-
-
-
-
+OVRP_EXPORT ovrpResult ovrp_SetWideMotionMode2HandPosesEnabled(ovrpBool enabled);
+OVRP_EXPORT ovrpResult ovrp_IsWideMotionMode2HandPosesEnabled(ovrpBool* enabled);
 
 OVRP_EXPORT ovrpResult ovrp_SetMultimodalHandsControllersSupported(ovrpBool supported);
 OVRP_EXPORT ovrpResult ovrp_IsMultimodalHandsControllersSupported(ovrpBool* supported);
@@ -987,13 +1015,9 @@ OVRP_EXPORT ovrpResult ovrp_GetHandTrackingEnabled(ovrpBool* handTrackingEnabled
 OVRP_EXPORT ovrpResult ovrp_GetHandState(ovrpStep step, ovrpHand hand, ovrpHandState* handState);
 OVRP_EXPORT ovrpResult ovrp_GetHandState2(ovrpStep step, int frameIndex, ovrpHand hand, ovrpHandState* handState);
 OVRP_EXPORT ovrpResult ovrp_GetHandState3(ovrpStep step, int frameIndex, ovrpHand hand, ovrpHandState3* handState);
-
-
-
-
-
-
-
+OVRP_EXPORT ovrpResult
+ovrp_GetHandPoseSourceInferred(ovrpStep step, int frameIndex, ovrpHand hand, ovrpBool* poseInferred);
+OVRP_EXPORT ovrpResult ovrp_GetUnextrapolatedHandState(ovrpHand hand, ovrpHandState3* handState);
 OVRP_EXPORT ovrpResult ovrp_GetHandStateAtTime(double time, ovrpHand hand, ovrpHandState3* handState);
 OVRP_EXPORT ovrpResult
 ovrp_GetHandTrackingState(ovrpStep step, int frameIndex, ovrpHand hand, ovrpHandTrackingState* handTrackingState);
@@ -1343,6 +1367,7 @@ OVRP_EXPORT ovrpResult ovrp_GetEyeLayerRecommendedResolution(ovrpSizei* recommen
 
 
 
+
 OVRP_EXPORT ovrpResult ovrp_RegisterOpenXREventHandler(ovrpOpenXrEventHandler eventHandler, void* context);
 OVRP_EXPORT ovrpResult ovrp_UnregisterOpenXREventHandler(ovrpOpenXrEventHandler eventHandler);
 
@@ -1379,9 +1404,7 @@ OVRP_EXPORT ovrpResult ovrp_GetBoundaryVisibility(ovrpBoundaryVisibility* bounda
 
 
 
-
-
-
+OVRP_EXPORT ovrpResult ovrp_RequestFastMotionMode(ovrpBool enabled);
 
 OVRP_EXPORT ovrpResult ovrp_IsLayerShapeSupported(ovrpShape shape, ovrpBool* isLayerShapeSupported);
 

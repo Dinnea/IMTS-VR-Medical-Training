@@ -13,10 +13,10 @@ void AMRUKSceneDataProvider::GetRoom(FString& RoomJSON, FString& RoomName)
 			for (const TPair<FString, UDataTable*>& Room : Rooms)
 			{
 				UDataTable* const RoomDT = Room.Value;
-				const FJSONData* TmpJSON = RoomDT->FindRow<FJSONData>(FName(SpecificRoomName), "", false);
-				if (TmpJSON != nullptr)
+				const FJSONData* JSONData = RoomDT->FindRow<FJSONData>(FName(SpecificRoomName), "", false);
+				if (JSONData != nullptr)
 				{
-					RoomJSON = TmpJSON->JSON;
+					RoomJSON = JSONData->JSON;
 					RoomName = SpecificRoomName;
 					return;
 				}
@@ -33,18 +33,22 @@ void AMRUKSceneDataProvider::GetRoom(FString& RoomJSON, FString& RoomName)
 	{
 		if (!SpecificRoomClass.IsEmpty())
 		{
-			UDataTable* const RoomDT = *Rooms.Find(SpecificRoomClass);
-			if (RoomDT != nullptr)
+			UDataTable* const* RoomDTPtr = Rooms.Find(SpecificRoomClass);
+			if (RoomDTPtr != nullptr)
 			{
-				TArray<FJSONData*> TmpArray;
-				RoomDT->GetAllRows("", TmpArray);
-				TArray<FName> TmpRowNames = RoomDT->GetRowNames();
-				const int32 NumRows = TmpArray.Num() - 1;
-				const int32 RowIndex = FMath::RandRange(0, NumRows);
+				UDataTable* const RoomDT = *RoomDTPtr;
+				if (RoomDT != nullptr)
+				{
+					TArray<FJSONData*> AllRows;
+					RoomDT->GetAllRows("", AllRows);
+					TArray<FName> RowNames = RoomDT->GetRowNames();
+					const int32 NumRows = AllRows.Num() - 1;
+					const int32 RowIndex = FMath::RandRange(0, NumRows);
 
-				RoomJSON = TmpArray[RowIndex]->JSON;
-				RoomName = TmpRowNames[RowIndex].ToString();
-				return;
+					RoomJSON = AllRows[RowIndex]->JSON;
+					RoomName = RowNames[RowIndex].ToString();
+					return;
+				}
 			}
 
 			UE_LOG(LogMRUK, Warning, TEXT("Specific room class not found, using random room."));

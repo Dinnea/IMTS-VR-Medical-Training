@@ -8,8 +8,8 @@
 
 MRUKShared* MRUKShared::Instance = nullptr;
 
-MRUKShared::MRUKShared(void* handle)
-	: MRUKSharedHandle(handle)
+MRUKShared::MRUKShared(void* Handle)
+	: MRUKSharedHandle(Handle)
 {
 	LoadNativeFunctions();
 }
@@ -24,34 +24,36 @@ MRUKShared::~MRUKShared()
 
 void MRUKShared::LoadMRUKSharedLibrary()
 {
-	if (Instance != nullptr)
+	if (Instance)
 	{
 		return;
 	}
 
-	// Load
+	// Load the MR Utility Kit Shared library
 	UE_LOG(LogMRUK, Log, TEXT("Loading MR Utility Kit Shared library"));
 #if PLATFORM_WINDOWS
-	const FString BinariesPath = FPaths::Combine(IPluginManager::Get().FindPlugin(TEXT("OculusXR"))->GetBaseDir(), TEXT("/Source/Thirdparty/MRUtilityKitShared/Lib/Win64"));
+	const FString BinariesPath = FPaths::Combine(
+		IPluginManager::Get().FindPlugin(TEXT("OculusXR"))->GetBaseDir(),
+		TEXT("/Source/Thirdparty/MRUtilityKitShared/Lib/Win64"));
 	FPlatformProcess::PushDllDirectory(*BinariesPath);
-	void* handle = FPlatformProcess::GetDllHandle(TEXT("mrutilitykitshared.dll"));
+	void* Handle = FPlatformProcess::GetDllHandle(TEXT("mrutilitykitshared.dll"));
 	FPlatformProcess::PopDllDirectory(*BinariesPath);
 #elif PLATFORM_ANDROID
-	void* handle = FPlatformProcess::GetDllHandle(TEXT("libmrutilitykitshared.so"));
+	void* Handle = FPlatformProcess::GetDllHandle(TEXT("libmrutilitykitshared.so"));
 #endif // PLATFORM_ANDROID
 
-	if (handle == nullptr)
+	if (!Handle)
 	{
 		UE_LOG(LogMRUK, Error, TEXT("Failed to load MR Utility Kit Shared library"));
 		return;
 	}
 
-	Instance = new MRUKShared(handle);
+	Instance = new MRUKShared(Handle);
 }
 
 void MRUKShared::FreeMRUKSharedLibrary()
 {
-	if (Instance == nullptr)
+	if (!Instance)
 	{
 		return;
 	}
@@ -61,10 +63,10 @@ void MRUKShared::FreeMRUKSharedLibrary()
 
 void* MRUKShared::LoadFunction(const TCHAR* ProcName)
 {
-	auto function = FPlatformProcess::GetDllExport(MRUKSharedHandle, ProcName);
-	if (function == nullptr)
+	void* Function = FPlatformProcess::GetDllExport(MRUKSharedHandle, ProcName);
+	if (!Function)
 	{
 		UE_LOG(LogMRUK, Error, TEXT("Failed to load native function: %s"), ProcName);
 	}
-	return function;
+	return Function;
 }

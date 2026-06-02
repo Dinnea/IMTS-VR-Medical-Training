@@ -390,8 +390,8 @@ void FOculusXRMRModule::OnInitialWorldCreated(UWorld* NewWorld)
 						if (RHIGetInterfaceType() == ERHIInterfaceType::Vulkan)
 						{
 							unsigned int queueIndex = 0;
-							ExecuteOnRenderThread([&queueIndex]() {
-								ExecuteOnRHIThread([&queueIndex]() {
+							OculusXRHMD::RunOnRenderingThreadAndWait([&queueIndex](FRHICommandListImmediate& RHICmdList) {
+								OculusXRHMD::RunOnRHIThreadAndWait(RHICmdList, [&queueIndex](FRHICommandListImmediate& RHICmdList) {
 									const uint32 GraphicsQueueIndex = GetIVulkanDynamicRHI()->RHIGetGraphicsQueueIndex();
 									if (GraphicsQueueIndex == queueIndex)
 									{

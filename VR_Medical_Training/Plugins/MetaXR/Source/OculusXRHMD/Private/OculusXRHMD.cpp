@@ -1255,8 +1255,8 @@ namespace OculusXRHMD
 	void FOculusXRHMD::DoSessionShutdown()
 	{
 		// Release resources
-		ExecuteOnRenderThread([this]() {
-			ExecuteOnRHIThread([this]() {
+		RunOnRenderingThreadAndWait([this](FRHICommandListImmediate& RHICmdList) {
+			RunOnRHIThreadAndWait(RHICmdList, [this](FRHICommandListImmediate& RHICmdList) {
 				for (int32 LayerIndex = 0; LayerIndex < Layers_RenderThread.Num(); LayerIndex++)
 				{
 					Layers_RenderThread[LayerIndex]->ReleaseResources_RHIThread();
@@ -1287,7 +1287,7 @@ namespace OculusXRHMD
 			Layers_RenderThread.Reset();
 			EyeLayer_RenderThread.Reset();
 
-			DeferredDeletion.HandleLayerDeferredDeletionQueue_RenderThread(true);
+			DeferredDeletion.HandleLayerDeferredDeletionQueue_RenderThread(RHICmdList, true);
 
 			EnableInsightPassthrough_RenderThread(false);
 		});
@@ -2085,8 +2085,8 @@ namespace OculusXRHMD
 	{
 		CheckInGameThread();
 
-		ExecuteOnRenderThread([&]() {
-			InitializeEyeLayer_RenderThread(GetImmediateCommandList_ForRenderCommand());
+		RunOnRenderingThreadAndWait([&](FRHICommandListImmediate& RHICmdList) {
+			InitializeEyeLayer_RenderThread(RHICmdList);
 
 			const FXRSwapChainPtr& SwapChain = EyeLayer_RenderThread->GetSwapChain();
 			if (SwapChain.IsValid())
@@ -2201,7 +2201,8 @@ namespace OculusXRHMD
 
 					// This is a hack to turn force the runtime to use FDM over FSR when we allocate our FDM to avoid a crash on Quest 3
 					// TODO: Remove this for UE 5.3 after there's an engine-side fix
-					ExecuteOnRHIThread_DoNotWait([this]() {
+					FRHICommandListImmediate& RHICmdList = GetImmediateCommandList_ForRenderCommand();
+					RHICmdList.EnqueueLambda([this](FRHICommandListImmediate& RHICmdList) {
 						// Set this in AllocateShadingRateTexture because it guarantees that this runs after VulkanExtensions has initially
 						// selected the shading rate type, before the FDM is actually going to be used, and only when we actually have an FDM
 						CustomPresent->UseFragmentDensityMapOverShadingRate_RHIThread();
@@ -2813,7 +2814,7 @@ namespace OculusXRHMD
 		EnableInsightPassthrough_RenderThread(Settings_RenderThread->Flags.bInsightPassthroughEnabled);
 
 		// Start RHI frame
-		StartRHIFrame_RenderThread();
+		StartRHIFrame_RenderThread(RHICmdList);
 
 		// Update performance stats
 		PerformanceStats.Frames++;
@@ -3131,8 +3132,8 @@ namespace OculusXRHMD
 
 	void FOculusXRHMD::ApplicationPauseDelegate()
 	{
-		ExecuteOnRenderThread([this]() {
-			ExecuteOnRHIThread([this]() {
+		RunOnRenderingThreadAndWait([this](FRHICommandListImmediate& RHICmdList) {
+			RunOnRHIThreadAndWait(RHICmdList, [this](FRHICommandListImmediate& RHICmdList) {
 				FOculusXRHMDModule::GetPluginWrapper().DestroyDistortionWindow2();
 			});
 		});
@@ -3284,8 +3285,8 @@ namespace OculusXRHMD
 
 		// Foveation related features need swapchain whose lifecycle ends in RHIThread normally.
 		// These features should be run in RHIThread to avoid potential racing conditions.
-		ExecuteOnRenderThread([this]() {
-			ExecuteOnRHIThread([this]() {
+		RunOnRenderingThreadAndWait([this](FRHICommandListImmediate& RHICmdList) {
+			RunOnRHIThreadAndWait(RHICmdList, [this](FRHICommandListImmediate& RHICmdList) {
 				// Allow CVars to override the app's foveated rendering settings (set -1 to restore app's setting)
 				FOculusXRHMDModule::GetPluginWrapper().SetFoveationEyeTracked(GetFoveatedRenderingMethod() == EOculusXRFoveatedRenderingMethod::EyeTrackedFoveatedRendering);
 				FOculusXRHMDModule::GetPluginWrapper().SetTiledMultiResLevel((ovrpTiledMultiResLevel)GetFoveatedRenderingLevel());
@@ -3298,8 +3299,8 @@ namespace OculusXRHMD
 
 	void FOculusXRHMD::ShutdownSession()
 	{
-		ExecuteOnRenderThread([this]() {
-			ExecuteOnRHIThread([this]() {
+		RunOnRenderingThreadAndWait([this](FRHICommandListImmediate& RHICmdList) {
+			RunOnRHIThreadAndWait(RHICmdList, [this](FRHICommandListImmediate& RHICmdList) {
 				FOculusXRHMDModule::GetPluginWrapper().DestroyDistortionWindow2();
 			});
 		});
@@ -3380,7 +3381,7 @@ namespace OculusXRHMD
 
 		const bool bEnablePassthrough = Settings->Flags.bInsightPassthroughEnabled;
 
-		ExecuteOnRenderThread([this, bEnablePassthrough](FRHICommandListImmediate& RHICmdList) {
+		RunOnRenderingThreadAndWait([this, bEnablePassthrough](FRHICommandListImmediate& RHICmdList) {
 			InitializeEyeLayer_RenderThread(RHICmdList);
 			EnableInsightPassthrough_RenderThread(bEnablePassthrough);
 		});
@@ -4403,7 +4404,7 @@ namespace OculusXRHMD
 
 	void FOculusXRHMD::StopEnvironmentDepth()
 	{
-		ExecuteOnRenderThread_DoNotWait([this]() {
+		ENQUEUE_RENDER_COMMAND(FOculusXRHMD_StopEnvironmentDepth)([this](FRHICommandListImmediate& RHICmdList) {
 			if (!EnvironmentDepthSwapchain.IsEmpty())
 			{
 				EnvironmentDepthSwapchain.Empty();
@@ -4556,6 +4557,7 @@ namespace OculusXRHMD
 	{
 #ifdef WITH_OCULUS_BRANCH
 		CheckInRenderThread();
+		FRHICommandListImmediate& RHICmdList = GetImmediateCommandList_ForRenderCommand();
 
 		SCOPED_NAMED_EVENT(UpdateFoveationOffsets_RenderThread, FColor::Red);
 
@@ -4579,7 +4581,7 @@ namespace OculusXRHMD
 		const FIntPoint SwapChainDimensions = SwapChainTexture->GetSizeXY();
 
 		// Enqueue the actual update on the RHI thread, which should execute right before the EndRenderPass call
-		ExecuteOnRHIThread_DoNotWait([this, SwapChainDimensions]() {
+		RHICmdList.EnqueueLambda([this, SwapChainDimensions](FRHICommandListImmediate& RHICmdList) {
 			SCOPED_NAMED_EVENT(UpdateFoveationEyeTracked_RHIThread, FColor::Red);
 
 			bool bUseOffsets = false;
@@ -4863,7 +4865,11 @@ namespace OculusXRHMD
 
 				if (!Splash->IsShown())
 				{
+#if UE_VERSION_OLDER_THAN(5, 7, 0)
 					FThreadIdleStats::FScopeIdle Scope;
+#else
+					UE::Stats::FThreadIdleStats::FScopeIdle Scope;
+#endif
 
 					if (FOculusXRHMDModule::GetPluginWrapper().GetInitialized() && WaitFrameNumber != Frame->FrameNumber)
 					{
@@ -4934,7 +4940,7 @@ namespace OculusXRHMD
 
 			XLayers.Sort(FLayerPtr_CompareId());
 
-			ExecuteOnRenderThread_DoNotWait([this, XSettings, XFrame, XLayers](FRHICommandListImmediate& RHICmdList) {
+			ENQUEUE_RENDER_COMMAND(FOculusXRHMD_StartRenderFrame)([this, XSettings, XFrame, XLayers](FRHICommandListImmediate& RHICmdList) {
 				if (XFrame.IsValid())
 				{
 					Settings_RenderThread = XSettings;
@@ -4988,7 +4994,7 @@ namespace OculusXRHMD
 
 					Layers_RenderThread = ValidXLayers;
 
-					DeferredDeletion.HandleLayerDeferredDeletionQueue_RenderThread();
+					DeferredDeletion.HandleLayerDeferredDeletionQueue_RenderThread(RHICmdList);
 				}
 			});
 		}
@@ -5024,7 +5030,7 @@ namespace OculusXRHMD
 		bIsRendering_RenderThread = false;
 	}
 
-	void FOculusXRHMD::StartRHIFrame_RenderThread()
+	void FOculusXRHMD::StartRHIFrame_RenderThread(FRHICommandListImmediate& RHICmdList)
 	{
 		CheckInRenderThread();
 
@@ -5041,7 +5047,7 @@ namespace OculusXRHMD
 				XLayers[XLayerIndex] = XLayers[XLayerIndex]->Clone();
 			}
 
-			ExecuteOnRHIThread_DoNotWait([this, XSettings, XFrame, XLayers]() {
+			RHICmdList.EnqueueLambda([this, XSettings, XFrame, XLayers](FRHICommandListImmediate& RHICmdList) {
 				if (XFrame.IsValid())
 				{
 					Settings_RHIThread = XSettings;

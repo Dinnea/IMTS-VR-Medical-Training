@@ -29,9 +29,8 @@ namespace OculusXR
 	void FOpenXRDynamicResolutionState::SetupMainViewFamily(class FSceneViewFamily& ViewFamily)
 	{
 		check(IsInGameThread());
-		check(ViewFamily.EngineShowFlags.ScreenPercentage == true);
 
-		if (IsEnabled())
+		if (IsEnabled() && ViewFamily.EngineShowFlags.ScreenPercentage)
 		{
 			IXRTrackingSystem* TrackingSystem = OculusXR::GetOpenXRTrackingSystem();
 			if (TrackingSystem != nullptr)

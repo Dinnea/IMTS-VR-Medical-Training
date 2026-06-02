@@ -995,6 +995,9 @@ namespace OculusXRInput
 									// Cache input state, so that if hand comes back it will send event deltas
 									UE_CLOG(OVR_DEBUG_LOGGING, LogOcInput, Log, TEXT("SendControllerEvents: Hand for the hand %d is not tracked and input states are saved"), int(HandIndex));
 								}
+
+								// Always set tracking confidence to low in this case
+								State.TrackingConfidence = EOculusXRTrackingConfidence::Low;
 							}
 						}
 					}

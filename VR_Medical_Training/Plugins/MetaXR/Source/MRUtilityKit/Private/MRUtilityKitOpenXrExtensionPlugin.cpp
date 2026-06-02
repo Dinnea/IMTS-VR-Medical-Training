@@ -7,10 +7,7 @@
 
 void FMRUKOpenXrExtensionPlugin::RegisterAsOpenXRExtension()
 {
-#if defined(WITH_OCULUS_BRANCH)
-	// Feature not enabled on Marketplace build. Currently only for the meta fork
 	RegisterOpenXRExtensionModularFeature();
-#endif
 }
 
 bool FMRUKOpenXrExtensionPlugin::GetRequiredExtensions(TArray<const ANSICHAR*>& OutExtensions)
@@ -31,6 +28,10 @@ bool FMRUKOpenXrExtensionPlugin::GetOptionalExtensions(TArray<const ANSICHAR*>& 
 	OutExtensions.Add("XR_META_environment_raycast");
 	OutExtensions.Add("XR_EXT_future");				   // Required by XR_META_environment_raycast
 	OutExtensions.Add("XR_KHR_convert_timespec_time"); // Required by XR_META_environment_raycast
+	OutExtensions.Add("XR_META_dynamic_object_tracker");
+	OutExtensions.Add("XR_META_dynamic_object_keyboard");
+	OutExtensions.Add("XR_EXT_spatial_marker_tracking");
+	OutExtensions.Add("XR_EXT_spatial_entity");
 	return true;
 }
 
@@ -38,6 +39,6 @@ void FMRUKOpenXrExtensionPlugin::OnEvent(XrSession InSession, const XrEventDataB
 {
 	if (OpenXrEventHandler)
 	{
-		OpenXrEventHandler((void*)InHeader, Context);
+		OpenXrEventHandler(const_cast<XrEventDataBaseHeader*>(InHeader), Context);
 	}
 }

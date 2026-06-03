@@ -335,22 +335,21 @@ void AVR_Hand_Tracked::GrabItem()
 		
 		
 		if (Cast<AGrabbableDrawer>(GrabbedActor))
+			return;
+		
+		
+		FName SocketName;
+		switch (GrabbedActor->ObjectSize)
 		{
-		}
-		else
-		{
-			FName SocketName;
-			switch (GrabbedActor->ObjectSize)
-			{
 			case EObjectType::Tool:
 				SocketName = "Socket_Palm_Tool";
 				break;
 			case EObjectType::Bottle:
 				SocketName = "Socket_Palm_Bottle";
 				break;
-			}
-			GrabbedActor->AttachToComponent(HandMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
 		}
+		GrabbedActor->AttachToComponent(HandMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
+		
 		// stop accidental multi grabbing
 		return;
 	}

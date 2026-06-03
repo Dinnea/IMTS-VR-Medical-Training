@@ -11,7 +11,8 @@ UENUM(BlueprintType)
 enum class EObjectType : uint8
 {
 	Tool,
-	Bottle	
+	Bottle,
+	None = 99,
 };
 
 class ASpawnZone;

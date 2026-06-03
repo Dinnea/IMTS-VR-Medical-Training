@@ -10,7 +10,7 @@ class USpawner;
 /**
  * 
  */
-UCLASS()
+UCLASS(Blueprintable)
 class VR_MEDICAL_TRAINING_API AGrabbableDrawer : public AGrabbableItem_Static
 {
 	GENERATED_BODY()

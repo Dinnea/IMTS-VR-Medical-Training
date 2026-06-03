@@ -1,6 +1,5 @@
 #include "GrabbableItem.h"
 #include "SpawnZone.h"
-#include "Components/AudioComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
 #include "VR_Hands/VR_Hand_Tracked.h"
@@ -28,7 +27,6 @@ void AGrabbableItem::OnConstruction(const FTransform& Transform)
 	}
 	else return;
 	
-	UE_LOG(LogTemp, Warning, TEXT("pinch hold %s"), *Bounds.BoxExtent.ToString());
 	FVector BoxSize = Bounds.BoxExtent * 1.1f;
 	Collider->SetBoxExtent(BoxSize);
 }
@@ -48,7 +46,6 @@ void AGrabbableItem::Drop()
 	OwningHand = nullptr;
 	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	Collider->SetSimulatePhysics(true);
-	//Collider->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 }
 
 void AGrabbableItem::OnSpawn(ASpawnZone* InSpawnZone)
@@ -87,7 +84,7 @@ void AGrabbableItem::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* O
 void AGrabbableItem::PlayImpactSFX(const FHitResult& Hit)
 {
 	SoundCooldown = SoundCooldownPeriod;
-	UE_LOG(LogTemp, Warning, TEXT("BOOM"));
+
 	if (DropSFX)
 		UGameplayStatics::PlaySoundAtLocation(this, DropSFX, this->GetActorLocation());
 }
@@ -119,8 +116,8 @@ void AGrabbableItem::Tick(float DeltaTime)
 	
 	Collider->UpdateOverlaps();
 	
-	SoundCooldown -= DeltaTime;
+	if (SoundCooldown < 0 )
+		SoundCooldown -= DeltaTime;
 	
-	UE_LOG(LogTemp, Warning, TEXT("SoundCooldown: %f"), SoundCooldown);
 }
 

@@ -340,7 +340,6 @@ void AVR_Hand_Tracked::GrabItem()
 		else
 		{
 			GrabbedActor->AttachToComponent(HandMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
-			UE_LOG(LogTemp, Warning, TEXT("pinch hold"));
 		}
 		// stop accidental multi grabbing
 		return;
@@ -384,8 +383,6 @@ void AVR_Hand_Tracked::PinchItem()
 
 void AVR_Hand_Tracked::DropItem()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Drop item"));
-	
 	Grabbed->Drop();
 	
 	if (Grabbed->ObjectName == "Scissors")

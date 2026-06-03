@@ -36,8 +36,6 @@ void AGrabbableItem::Grab(AVR_Hand_Tracked* Hand)
 	if (OwningHand)
 		return;
 	
-	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-	
 	OwningHand = Hand;
 	Collider->SetSimulatePhysics(false);
 	if (UseMeshOffsetOnGrab) SetActorRelativeLocation(MeshOffset);

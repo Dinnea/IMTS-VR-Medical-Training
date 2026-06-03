@@ -332,13 +332,23 @@ void AVR_Hand_Tracked::GrabItem()
 		GrabbedActor->Grab(this);
 		Grabbed = GrabbedActor;
 		
-		FName SocketName = "Socket_Palm";
+		
 		
 		if (Cast<AGrabbableDrawer>(GrabbedActor))
 		{
 		}
 		else
 		{
+			FName SocketName;
+			switch (GrabbedActor->ObjectSize)
+			{
+			case EObjectType::Tool:
+				SocketName = "Socket_Palm_Tool";
+				break;
+			case EObjectType::Bottle:
+				SocketName = "Socket_Palm_Bottle";
+				break;
+			}
 			GrabbedActor->AttachToComponent(HandMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, SocketName);
 		}
 		// stop accidental multi grabbing
@@ -361,7 +371,7 @@ void AVR_Hand_Tracked::PinchItem()
 		
 		auto* GrabbedActor = Cast<AGrabbableItem>(Actor);
 		if (!GrabbedActor) continue;
-		if (!GrabbedActor->CanBePinchGrabbed) continue;
+		if (GrabbedActor->ObjectSize != EObjectType::Tool) continue;
 		
 		GrabbedActor->Grab(this);
 		Grabbed = GrabbedActor;
@@ -385,8 +395,8 @@ void AVR_Hand_Tracked::DropItem()
 {
 	Grabbed->Drop();
 	
-	if (Grabbed->ObjectName == "Scissors")
-			GrabMode = EGrabMode::Realistic;
+	// if (Grabbed->ObjectName == "Scissors")
+	// 		GrabMode = EGrabMode::Realistic;
 		
 	Grabbed = nullptr;
 }

@@ -1,10 +1,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "NiagaraComponent.h"
 #include "GameFramework/Actor.h"
 #include "Components/BoxComponent.h"
 #include "GrabbableItem.generated.h"
+
+
+
+UENUM(BlueprintType)
+enum class EObjectType : uint8
+{
+	Tool,
+	Bottle	
+};
 
 class ASpawnZone;
 class AVR_Hand_Tracked;
@@ -39,9 +47,6 @@ public:
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex);
 	void PlayImpactSFX(const FHitResult& Hit);
-
-	UPROPERTY(EditDefaultsOnly)
-	FName ObjectName;
 	
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<AVR_Hand_Tracked> OwningHand;
@@ -56,7 +61,7 @@ public:
 	const FHitResult& Hit);
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	bool CanBePinchGrabbed;
+	EObjectType ObjectSize = EObjectType::Tool;
 	
 protected:
 	virtual void BeginPlay() override;

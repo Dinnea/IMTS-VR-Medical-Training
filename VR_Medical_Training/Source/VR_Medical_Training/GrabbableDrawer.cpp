@@ -9,8 +9,8 @@
 
 AGrabbableDrawer::AGrabbableDrawer()
 {
-	//Spawner = CreateDefaultSubobject<USpawner>("SpawnPoint");
-	//Spawner ->SetupAttachment(RootComponent);
+	Spawner = CreateDefaultSubobject<USpawner>("SpawnPoint");
+	Spawner ->SetupAttachment(RootComponent);
 }
 
 void AGrabbableDrawer::Tick(float DeltaSeconds)
@@ -55,5 +55,5 @@ void AGrabbableDrawer::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	//SpawnObjects();
+	SpawnObjects();
 }

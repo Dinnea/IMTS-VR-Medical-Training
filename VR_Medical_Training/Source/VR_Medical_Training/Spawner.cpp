@@ -28,8 +28,6 @@ void USpawner::SpawnObjects()
 			FMath::RandRange(-SpawnRange.Y, SpawnRange.Y),
 			FMath::RandRange(-SpawnRange.Z, SpawnRange.Z)
 		);
-		
-		RandomPoint += GetRelativeLocation();
 	
 		const FVector SpawnLocation = GetComponentTransform().TransformPosition(RandomPoint);
 	

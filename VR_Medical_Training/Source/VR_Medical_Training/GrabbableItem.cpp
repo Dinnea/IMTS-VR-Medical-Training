@@ -60,7 +60,7 @@ void AGrabbableItem::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor*
 		return;
 	
 	if (Cast<AVR_Hand>(OtherActor))
-		if (OutlineMaterial) MeshComp->SetOverlayMaterial(OutlineMaterial);
+		if (OutlineMaterial && MeshComp) MeshComp->SetOverlayMaterial(OutlineMaterial);
 		
 	
 	if (auto* Spawn = Cast<ASpawnZone> (OtherActor))
@@ -73,7 +73,7 @@ void AGrabbableItem::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* O
 	if (!OtherActor || OtherActor == this || OtherActor == GetAttachParentActor())
 		return;
 	
-	if (Cast<AVR_Hand>(OtherActor))
+	if (Cast<AVR_Hand>(OtherActor) && MeshComp)
 		MeshComp->SetOverlayMaterial(nullptr);
 	
 	if (Cast<ASpawnZone> (OtherActor))
@@ -116,7 +116,7 @@ void AGrabbableItem::Tick(float DeltaTime)
 	
 	Collider->UpdateOverlaps();
 	
-	if (SoundCooldown < 0 )
+	if (SoundCooldown > 0 )
 		SoundCooldown -= DeltaTime;
 	
 }
